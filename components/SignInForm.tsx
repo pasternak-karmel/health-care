@@ -1,63 +1,128 @@
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DEFAULT_REDIRECT_URL } from "@/routes";
+import { LoginSchema } from "@/schemas";
+import { login } from "@/server/login";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
+import { useState, useTransition } from "react";
+import { Form, useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
 
-interface SignInFormProps {
-  onSubmit: (data: { email: string; password: string; rememberMe: boolean }) => void;
-}
+export default function SignInForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+  const urlError =
+    searchParams.get("error") === "OAuthAccountNotLinked"
+      ? "Email déjà utiliser avec un autre provider!"
+      : "";
 
-export default function SignInForm({ onSubmit }: SignInFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>("");
+  const [success, setSuccess] = useState<string | undefined>("");
+  const [isPending, startTransition] = useTransition();
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+    setError("");
+    setSuccess("");
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    await onSubmit({ email, password, rememberMe });
-    setLoading(false);
+    startTransition(() => {
+      login(values, callbackUrl)
+        .then((data) => {
+          if (data?.error) {
+            form.reset();
+
+            if (data.error === "Please verify your email address") {
+              setError(data.error);
+            } else {
+              setError(data.error);
+            }
+          }
+          if (data?.success) {
+            form.reset();
+            setSuccess(data.success);
+            router.push(DEFAULT_REDIRECT_URL);
+          }
+        })
+        .catch(() => setError("Something went wrong"));
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 border rounded shadow-md bg-white">
-      <h2 className="text-xl font-bold text-center mb-4">Se connecter</h2>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="space-y-4">
+          <>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={isPending}
+                      placeholder="john.doe@example.com"
+                      type="email"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={isPending}
+                      placeholder="******"
+                      type="password"
+                    />
+                  </FormControl>
+                  <Button
+                    size="sm"
+                    variant="link"
+                    asChild
+                    className="px-0 font-normal"
+                  >
+                    <Link href="/auth/reset">Forgot password?</Link>
+                  </Button>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        </div>
 
-      <Input
-        placeholder="Email"
-        type="email"
-        id="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <Input
-        placeholder="Mot de passe"
-        type="password"
-        id="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-
-      <div className="mb-4 flex items-center">
-        <input
-          id="rememberMe"
-          type="checkbox"
-          checked={rememberMe}
-          onChange={(e) => setRememberMe(e.target.checked)}
-          className="mr-2"
-        />
-        <label htmlFor="rememberMe" className="text-gray-700 text-sm">
-          Se souvenir de moi
-        </label>
-      </div>
-
-      <Button type="submit" disabled={loading}>
-        {loading ? "Connexion..." : "Se connecter"}
-      </Button>
-    </form>
+        {error && <p className="text-red-500">{error || urlError}</p>}
+        {success && <p className="text-green-500">{success}</p>}
+        <Button disabled={isPending} type="submit" className="w-full">
+          {isPending ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+    </Form>
   );
 }

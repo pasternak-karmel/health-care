@@ -2,7 +2,6 @@
 
 import SignUpForm from "@/components/SignUpForm";
 
-import { client } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";

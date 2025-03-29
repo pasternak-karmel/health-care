@@ -1,22 +1,40 @@
+import * as schema from "@/auth-schema";
+import { db } from "@/db";
 import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { PrismaClient } from "@prisma/client";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { twoFactor } from "better-auth/plugins";
+import { passkey } from "better-auth/plugins/passkey";
 
-const prisma = new PrismaClient();
- 
 export const auth = betterAuth({
-    database: prismaAdapter(prisma, {
-        provider: "postgresql",     
-    }),
-    emailAndPassword: {
-        enabled: true,
-        autoSignIn: true,
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema,
+  }),
+  emailAndPassword: {
+    enabled: true,
+    // sendResetPassword: async ({ user, url }) => {
+    //   // gonna be implemented later
+    //   // await sendPasswordResetEmail(user.email, url);
+    // },
+    requireEmailVerification: true,
+  },
+  // emailVerification: {
+  //   sendOnSignUp: true,
+  //   sendVerificationEmail: async ({ user, url }) => {
+  //     // gonna be implemented later
+  //     // await sendVerificationEmail(user.email, url);
+  //   },
+  // },
+  socialProviders: {
+    github: {
+      clientId: process.env.AUTH_GITHUB_ID!,
+      clientSecret: process.env.AUTH_GITHUB_SECRET!,
     },
-    plugins: [
-        nextCookies()
-    ]
-
+    google: {
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    },
+  },
+  plugins: [passkey(), twoFactor(), nextCookies()],
 });
-
-// npx @better-auth/cli generate --config lib/auth.ts --output prisma/schema.prisma
