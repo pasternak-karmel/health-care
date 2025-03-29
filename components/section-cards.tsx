@@ -1,7 +1,9 @@
+import { statiqueDashboard } from "@/action/dasboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Bell, Calendar, Users } from "lucide-react";
 
-export function SectionCards() {
+export async function SectionCards() {
+  const stats = await statiqueDashboard();
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid gap-4 md:grid-cols-2 lg:grid-cols-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs ">
       <Card className="@container/card">
@@ -10,8 +12,11 @@ export function SectionCards() {
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">248</div>
-          <p className="text-xs text-muted-foreground">+12 ce mois</p>
+          <div className="text-2xl font-bold">{stats.processedCount}</div>
+          <p className="text-xs text-muted-foreground">
+            {stats.processedPercentChange > 0 ? "+" : ""}
+            {stats.processedPercentChange}% ce mois
+          </p>
         </CardContent>
       </Card>
       <Card>
@@ -48,7 +53,6 @@ export function SectionCards() {
           <p className="text-xs text-muted-foreground">Stade 4-5</p>
         </CardContent>
       </Card>
-      {/* <SectionCards /> */}
     </div>
   );
 }
