@@ -7,18 +7,19 @@ import { LoginSchema } from "@/schemas";
 import { login } from "@/server/login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/router";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Form, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "./ui/form";
+import { toast } from "sonner";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -29,8 +30,6 @@ export default function SignInForm() {
       ? "Email déjà utiliser avec un autre provider!"
       : "";
 
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -40,28 +39,20 @@ export default function SignInForm() {
     },
   });
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    setError("");
-    setSuccess("");
-
     startTransition(() => {
       login(values, callbackUrl)
         .then((data) => {
           if (data?.error) {
             form.reset();
-
-            if (data.error === "Please verify your email address") {
-              setError(data.error);
-            } else {
-              setError(data.error);
-            }
+            toast.error(data.error);
           }
           if (data?.success) {
             form.reset();
-            setSuccess(data.success);
+            toast.success(data.success);
             router.push(DEFAULT_REDIRECT_URL);
           }
         })
-        .catch(() => setError("Something went wrong"));
+        .catch(() => toast.error("Something went wrong"));
     });
   };
 
@@ -117,8 +108,7 @@ export default function SignInForm() {
           </>
         </div>
 
-        {error && <p className="text-red-500">{error || urlError}</p>}
-        {success && <p className="text-green-500">{success}</p>}
+        {urlError && <p className="text-red-500">{urlError}</p>}
         <Button disabled={isPending} type="submit" className="w-full">
           {isPending ? "Signing in..." : "Sign in"}
         </Button>
