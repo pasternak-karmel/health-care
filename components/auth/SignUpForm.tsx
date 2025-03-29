@@ -1,26 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
-import { z } from "zod";
-import { RegisterSchema } from "@/schemas";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { register } from "@/server/register";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import { LOGIN_URL } from "@/routes";
-
-// interface SignUpFormProps {
-//   onSubmit: (data: {
-//     email: string;
-//     password: string;
-//     name: string;
-//     confirmPassword: string;
-//   }) => void;
-// }
+import { RegisterSchema } from "@/schemas";
+import { register } from "@/server/register";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -49,7 +40,7 @@ export default function SignUpForm() {
         .then((data) => {
           if (data?.error) {
             form.reset();
-              toast.error(data.error);
+            toast.error(data.error);
           }
           if (data?.success) {
             form.reset();
@@ -61,7 +52,7 @@ export default function SignUpForm() {
           setLoading(false);
         });
     });
-  }
+  };
 
   return (
     <Form {...form}>
@@ -78,6 +69,7 @@ export default function SignUpForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          disabled={isPending}
         />
         <Input
           placeholder="Email"
@@ -86,6 +78,7 @@ export default function SignUpForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={isPending}
         />
         <Input
           placeholder="Mot de passe"
@@ -94,6 +87,7 @@ export default function SignUpForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          disabled={isPending}
         />
         <Input
           placeholder="Confirmet Mot de passe"
@@ -102,6 +96,7 @@ export default function SignUpForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
+          disabled={isPending}
         />
 
         <Button type="submit" disabled={loading}>

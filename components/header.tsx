@@ -12,16 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Bell, Menu, Search } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Bell, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function Header() {
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,7 +55,7 @@ export default function Header() {
       )}
 
       <div className="w-full flex-1 flex items-center">
-        <form className="hidden md:flex-1 md:flex max-w-sm">
+        {/* <form className="hidden md:flex-1 md:flex max-w-sm">
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -67,7 +64,7 @@ export default function Header() {
               className="w-full pl-8"
             />
           </div>
-        </form>
+        </form> */}
 
         <div className="flex flex-1 items-center justify-end space-x-4">
           <DropdownMenu>
@@ -95,7 +92,7 @@ export default function Header() {
                 <div className="flex flex-col">
                   <span className="font-medium">Rappel: Rendez-vous</span>
                   <span className="text-xs text-muted-foreground">
-                    3 rendez-vous aujourd'hui
+                    3 rendez-vous aujourd&apos;hui
                   </span>
                 </div>
               </DropdownMenuItem>

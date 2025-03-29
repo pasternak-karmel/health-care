@@ -2,14 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DEFAULT_REDIRECT_URL } from "@/routes";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { LoginSchema } from "@/schemas";
 import { login } from "@/server/login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import {
   Form,
@@ -18,8 +19,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { toast } from "sonner";
+} from "../ui/form";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -38,6 +38,7 @@ export default function SignInForm() {
       password: "",
     },
   });
+
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
     startTransition(() => {
       login(values, callbackUrl)
@@ -49,7 +50,7 @@ export default function SignInForm() {
           if (data?.success) {
             form.reset();
             toast.success(data.success);
-            router.push(DEFAULT_REDIRECT_URL);
+            router.push(DEFAULT_LOGIN_REDIRECT);
           }
         })
         .catch(() => toast.error("Something went wrong"));
