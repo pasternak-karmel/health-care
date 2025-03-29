@@ -1,23 +1,22 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { PlusCircle, Search, Filter, Eye, Edit, Trash } from 'lucide-react'
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Edit, Eye, Filter, PlusCircle, Search, Trash } from "lucide-react";
+import Link from "next/link";
 
 const patients = [
   {
@@ -28,7 +27,7 @@ const patients = [
     stage: 3,
     lastVisit: "12/03/2023",
     nextVisit: "15/06/2023",
-    status: "stable"
+    status: "stable",
   },
   {
     id: "2",
@@ -38,7 +37,7 @@ const patients = [
     stage: 4,
     lastVisit: "05/04/2023",
     nextVisit: "19/04/2023",
-    status: "critical"
+    status: "critical",
   },
   {
     id: "3",
@@ -48,7 +47,7 @@ const patients = [
     stage: 2,
     lastVisit: "22/02/2023",
     nextVisit: "22/05/2023",
-    status: "stable"
+    status: "stable",
   },
   {
     id: "4",
@@ -58,7 +57,7 @@ const patients = [
     stage: 3,
     lastVisit: "18/03/2023",
     nextVisit: "18/06/2023",
-    status: "stable"
+    status: "stable",
   },
   {
     id: "5",
@@ -68,7 +67,7 @@ const patients = [
     stage: 5,
     lastVisit: "01/04/2023",
     nextVisit: "15/04/2023",
-    status: "critical"
+    status: "critical",
   },
   {
     id: "6",
@@ -78,7 +77,7 @@ const patients = [
     stage: 3,
     lastVisit: "25/02/2023",
     nextVisit: "25/05/2023",
-    status: "improving"
+    status: "improving",
   },
   {
     id: "7",
@@ -88,7 +87,7 @@ const patients = [
     stage: 4,
     lastVisit: "10/03/2023",
     nextVisit: "10/05/2023",
-    status: "worsening"
+    status: "worsening",
   },
   {
     id: "8",
@@ -98,9 +97,9 @@ const patients = [
     stage: 2,
     lastVisit: "15/03/2023",
     nextVisit: "15/06/2023",
-    status: "stable"
-  }
-]
+    status: "stable",
+  },
+];
 
 export default function PatientsPage() {
   return (
@@ -114,7 +113,7 @@ export default function PatientsPage() {
           </Button>
         </Link>
       </div>
-      
+
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full max-w-sm items-center space-x-2">
           <div className="relative w-full">
@@ -126,7 +125,7 @@ export default function PatientsPage() {
             />
           </div>
         </div>
-        
+
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="flex items-center gap-2">
             <Select defaultValue="all">
@@ -145,7 +144,7 @@ export default function PatientsPage() {
                 <SelectItem value="5">Stade 5</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Select defaultValue="all">
               <SelectTrigger className="w-[180px]">
                 <div className="flex items-center gap-2">
@@ -164,7 +163,7 @@ export default function PatientsPage() {
           </div>
         </div>
       </div>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -190,24 +189,31 @@ export default function PatientsPage() {
                 <TableCell>{patient.nextVisit}</TableCell>
                 <TableCell>
                   {patient.status === "stable" && (
-                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-100 text-green-800 border-green-200"
+                    >
                       Stable
                     </Badge>
                   )}
                   {patient.status === "improving" && (
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-100 text-blue-800 border-blue-200"
+                    >
                       En amélioration
                     </Badge>
                   )}
                   {patient.status === "worsening" && (
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-100 text-amber-800 border-amber-200"
+                    >
                       En détérioration
                     </Badge>
                   )}
                   {patient.status === "critical" && (
-                    <Badge variant="destructive">
-                      Critique
-                    </Badge>
+                    <Badge variant="destructive">Critique</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
@@ -236,5 +242,5 @@ export default function PatientsPage() {
         </Table>
       </div>
     </div>
-  )
+  );
 }
