@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
       const callbackUrl = nextUrl.pathname;
       const encodedCallbackUrl = encodeURIComponent(callbackUrl);
       return NextResponse.redirect(
-        new URL(`/auth/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
+        new URL(`/auth/sign-in?callbackUrl=${encodedCallbackUrl}`, nextUrl)
       );
     }
 

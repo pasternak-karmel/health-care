@@ -1,6 +1,6 @@
 {
-  "id": "7de60fa5-a363-43d5-aedb-a4e3fa8f4392",
-  "prevId": "37e245ba-bd99-4b86-b1d8-366984874053",
+  "id": "0fff0960-01a3-4f3d-9729-d77702931d3d",
+  "prevId": "4775417f-8941-4cf4-9956-1011ce75ee21",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -499,13 +499,15 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -601,6 +603,13 @@
           "notNull": true,
           "default": 0
         },
+        "previous_proteinurie": {
+          "name": "previous_proteinurie",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "last_visit": {
           "name": "last_visit",
           "type": "timestamp with time zone",
@@ -617,13 +626,15 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -705,13 +716,15 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},

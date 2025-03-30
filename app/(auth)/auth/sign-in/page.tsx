@@ -8,7 +8,7 @@ export default function SignInPage() {
 
       <p className="mt-4 text-gray-700">
         Pas encore de compte ?{" "}
-        <Link href="/sign-up" className="text-blue-500 hover:underline">
+        <Link href="/auth/sign-up" className="text-blue-500 hover:underline">
           Sinscrire ici
         </Link>
       </p>

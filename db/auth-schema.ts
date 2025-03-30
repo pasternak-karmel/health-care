@@ -1,9 +1,9 @@
 import {
+  boolean,
+  integer,
   pgTable,
   text,
-  integer,
   timestamp,
-  boolean,
 } from "drizzle-orm/pg-core";
 
 import { createId } from "@paralleldrive/cuid2";
@@ -14,17 +14,17 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
-  createdAt: timestamp("created_at", {withTimezone: true}).notNull(),
-  updatedAt: timestamp("updated_at", {withTimezone: true}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
   twoFactorEnabled: boolean("two_factor_enabled"),
 });
 
 export const session = pgTable("session", {
   id: text("id").primaryKey().$defaultFn(createId),
-  expiresAt: timestamp("expires_at", {withTimezone: true}).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at", {withTimezone: true}).notNull(),
-  updatedAt: timestamp("updated_at", {withTimezone: true}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   userId: text("user_id")
@@ -42,21 +42,25 @@ export const account = pgTable("account", {
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at", {withTimezone: true}),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {withTimezone: true}),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", {
+    withTimezone: true,
+  }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+    withTimezone: true,
+  }),
   scope: text("scope"),
   password: text("password"),
-  createdAt: timestamp("created_at", {withTimezone: true}).notNull(),
-  updatedAt: timestamp("updated_at", {withTimezone: true}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey().$defaultFn(createId),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: timestamp("expires_at", {withTimezone: true}).notNull(),
-  createdAt: timestamp("created_at", {withTimezone: true}),
-  updatedAt: timestamp("updated_at", {withTimezone: true}),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }),
 });
 
 export const passkey = pgTable("passkey", {
@@ -71,7 +75,7 @@ export const passkey = pgTable("passkey", {
   deviceType: text("device_type").notNull(),
   backedUp: boolean("backed_up").notNull(),
   transports: text("transports"),
-  createdAt: timestamp("created_at", {withTimezone: true}),
+  createdAt: timestamp("created_at", { withTimezone: true }),
 });
 
 export const twoFactor = pgTable("two_factor", {

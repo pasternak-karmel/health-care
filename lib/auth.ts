@@ -10,12 +10,12 @@ import { passkey } from "better-auth/plugins/passkey";
 export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      //TODO: Implement this
-      // gonna be implemented later
-      // await sendVerificationEmail(user.email, url);
-    },
-    autoSignInAfterVerification: true,
+    // sendVerificationEmail: async ({ user, url }) => {
+    //   //TODO: Implement this
+    //   // gonna be implemented later
+    //   await sendVerificationEmail(user.email, url);
+    // },
+    // autoSignInAfterVerification: true,
   },
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -27,7 +27,7 @@ export const auth = betterAuth({
     //   // gonna be implemented later
     //   // await sendPasswordResetEmail(user.email, url);
     // },
-    requireEmailVerification: true,
+    // requireEmailVerification: true,
   },
   // emailVerification: {
   //   sendOnSignUp: true,

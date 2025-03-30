@@ -1,6 +1,6 @@
-import { pgTable, text, integer, timestamp, uuid } from "drizzle-orm/pg-core";
-import { user } from "./auth-schema";
 import { createId } from "@paralleldrive/cuid2";
+import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { user } from "./auth-schema";
 
 export const patient = pgTable("patient", {
   id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
@@ -11,8 +11,12 @@ export const patient = pgTable("patient", {
   sex: text("sex").notNull(),
   phone: text("phone").notNull(),
   address: text("address").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const infoMedical = pgTable("information_medical", {
@@ -26,11 +30,15 @@ export const infoMedical = pgTable("information_medical", {
   dfg: integer("dfg").notNull().default(0),
   previousDfg: integer("previous_dfg").notNull().default(0),
   proteinurie: integer("proteinurie").notNull().default(0),
-  previousProteinurie: integer("proteinurie").notNull().default(0),
+  previousProteinurie: integer("previous_proteinurie").notNull().default(0),
   lastvisite: timestamp("last_visit", { withTimezone: true }).notNull(),
   nextvisite: timestamp("next_visit", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const historique = pgTable("historique", {
@@ -45,6 +53,10 @@ export const historique = pgTable("historique", {
   medecin: text("medecin")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

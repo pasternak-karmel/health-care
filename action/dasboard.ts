@@ -1,7 +1,7 @@
 "use server";
 
-import { patient } from "@/db/auth-schema";
 import { db } from "@/db";
+import { patient } from "@/db/schema";
 import { count, lt } from "drizzle-orm";
 
 export const statiqueDashboard = async () => {

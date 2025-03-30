@@ -26,13 +26,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { usePatient } from "@/hooks/use-patient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 
 const patientFormSchema = z.object({
@@ -57,15 +56,16 @@ const patientFormSchema = z.object({
   address: z.string().min(1, {
     message: "L'adresse est requise",
   }),
-  stage: z.string().min(1, {
-    message: "Le stade MRC est requis",
-  }),
-  dfg: z.string().min(1, {
-    message: "Le DFG est requis",
-  }),
-  proteinurie: z.string(),
-  medecin: z.string().min(1, {
-    message: "Le médecin référent est requis",
+  medicalInfo: z.object({
+    stage: z.coerce.number().int().min(1).max(5),
+    status: z.string().min(1, {
+      message: "Le statut est requis",
+    }),
+    medecin: z.string().min(1, {
+      message: "Le médecin référent est requis",
+    }),
+    dfg: z.coerce.number().int().min(0),
+    proteinurie: z.coerce.number().min(0),
   }),
   notes: z.string().optional(),
 });
@@ -74,7 +74,11 @@ type PatientFormValues = z.infer<typeof patientFormSchema>;
 
 export default function NewPatientPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createPatient, isLoading } = usePatient({
+    onSuccess: () => {
+      router.push("/patients");
+    },
+  });
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientFormSchema),
@@ -86,33 +90,19 @@ export default function NewPatientPage() {
       email: "",
       phone: "",
       address: "",
-      stage: "",
-      dfg: "",
-      proteinurie: "",
-      medecin: "",
+      medicalInfo: {
+        stage: 1,
+        status: "stable",
+        medecin: "",
+        dfg: 0,
+        proteinurie: 0,
+      },
       notes: "",
     },
   });
 
   async function onSubmit(data: PatientFormValues) {
-    setIsSubmitting(true);
-
-    try {
-      // Here you would normally send the data to your API
-      // For now, we'll just simulate a successful submission
-      console.log("Form data:", data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success("Patient créé avec succès");
-      router.push("/patients");
-    } catch (error) {
-      toast.error("Erreur lors de la création du patient");
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await createPatient(data);
   }
 
   return (
@@ -254,13 +244,15 @@ export default function NewPatientPage() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="stage"
+                  name="medicalInfo.stage"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Stade MRC</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        onValueChange={(value) =>
+                          field.onChange(Number.parseInt(value))
+                        }
+                        defaultValue={field.value.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -281,7 +273,37 @@ export default function NewPatientPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="dfg"
+                  name="medicalInfo.status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Statut</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="stable">Stable</SelectItem>
+                          <SelectItem value="improving">
+                            En amélioration
+                          </SelectItem>
+                          <SelectItem value="worsening">
+                            En détérioration
+                          </SelectItem>
+                          <SelectItem value="critical">Critique</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="medicalInfo.dfg"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>DFG (ml/min)</FormLabel>
@@ -297,7 +319,7 @@ export default function NewPatientPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="proteinurie"
+                  name="medicalInfo.proteinurie"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Protéinurie (g/24h)</FormLabel>
@@ -310,7 +332,7 @@ export default function NewPatientPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="medecin"
+                  name="medicalInfo.medecin"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Médecin référent</FormLabel>
@@ -346,8 +368,8 @@ export default function NewPatientPage() {
             <Button variant="outline" asChild>
               <Link href="/patients">Annuler</Link>
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
                 "Enregistrement..."
               ) : (
                 <>
