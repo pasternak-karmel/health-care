@@ -11,7 +11,7 @@ export default function LoginPage() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Health Care
+            Acme Inc.
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -19,10 +19,10 @@ export default function LoginPage() {
             <LoginForm />
           </div>
         </div>
-      </div>git 
+      </div>
       <div className="bg-muted relative hidden lg:block">
         <img
-          src="/images/Maladie-renale-chronique-scaled-1.jpeg" 
+          src="/placeholder.svg"
           alt="Image"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
