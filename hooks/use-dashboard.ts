@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface DashboardStats {
+export interface DashboardStats {
   totalPatients: number;
   stageDistribution: Array<{ stage: number; count: number }>;
   statusDistribution: Array<{ status: string; count: number }>;
@@ -16,47 +16,31 @@ interface DashboardStats {
   }>;
 }
 
-interface UseDashboardOptions {
-  onSuccess?: (data: any) => void;
-  onError?: (error: Error) => void;
+async function fetchDashboardStats(): Promise<DashboardStats> {
+  try {
+    const response = await fetch("/api/dashboard/stats");
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || "Failed to fetch dashboard statistics"
+      );
+    }
+
+    const data = await response.json();
+    return data as DashboardStats;
+  } catch (err) {
+    const error =
+      err instanceof Error ? err : new Error("An unknown error occurred");
+    toast.error(error.message);
+    throw error;
+  }
 }
 
-export function useDashboard(options?: UseDashboardOptions) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const getDashboardStats = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/dashboard/stats");
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Failed to fetch dashboard statistics"
-        );
-      }
-
-      const data = await response.json();
-      options?.onSuccess?.(data);
-      return data as DashboardStats;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("An unknown error occurred");
-      setError(error);
-      options?.onError?.(error);
-      toast.error(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return {
-    isLoading,
-    error,
-    getDashboardStats,
-  };
+export function useDashboard() {
+  return useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: fetchDashboardStats,
+    staleTime: 1000 * 60 * 5,
+  });
 }

@@ -1,34 +1,57 @@
-import { statiqueDashboard } from "@/action/dasboard";
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton"; // Import du Skeleton
+import { useDashboard } from "@/hooks/use-dashboard";
 import { AlertTriangle, Bell, Calendar, Users } from "lucide-react";
 
-export async function SectionCards() {
-  const stats = await statiqueDashboard();
+export function SectionCards() {
+  const { data: stats, isLoading, error } = useDashboard();
+
+  if (error) {
+    return <p className="text-red-500">Erreur: {error.message}</p>;
+  }
+
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid gap-4 md:grid-cols-2 lg:grid-cols-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs ">
-      <Card className="@container/card">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.processedCount}</div>
+          {isLoading ? (
+            <Skeleton className="h-8 w-16" />
+          ) : (
+            <div className="text-2xl font-bold">
+              {stats?.totalPatients ?? 0}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
-            {stats.processedPercentChange > 0 ? "+" : ""}
-            {stats.processedPercentChange}% ce mois
+            Nombre total de patients
           </p>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Alertes actives</CardTitle>
           <Bell className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">7</div>
-          <p className="text-xs text-muted-foreground">Nécessitant attention</p>
+          {isLoading ? (
+            <Skeleton className="h-8 w-16" />
+          ) : (
+            <div className="text-2xl font-bold">
+              {stats?.criticalPatients ?? 0}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Patients nécessitant une attention immédiate
+          </p>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
@@ -37,10 +60,19 @@ export async function SectionCards() {
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">12</div>
-          <p className="text-xs text-muted-foreground">3 à venir</p>
+          {isLoading ? (
+            <Skeleton className="h-8 w-16" />
+          ) : (
+            <div className="text-2xl font-bold">
+              {stats?.upcomingAppointments?.length ?? 0}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Rendez-vous prévus aujourd&apos;hui
+          </p>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
@@ -49,8 +81,16 @@ export async function SectionCards() {
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">5</div>
-          <p className="text-xs text-muted-foreground">Stade 4-5</p>
+          {isLoading ? (
+            <Skeleton className="h-8 w-16" />
+          ) : (
+            <div className="text-2xl font-bold">
+              {stats?.criticalPatients ?? 0}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Stade 4-5 nécessitant une surveillance
+          </p>
         </CardContent>
       </Card>
     </div>

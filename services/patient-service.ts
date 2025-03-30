@@ -392,6 +392,6 @@ export class PatientService {
         };
       },
       300
-    ); // 5 minutes cache
+    );
   }
 }

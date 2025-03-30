@@ -21,7 +21,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
         <Link href="/patients/nouveau">
-          <Button>
+          <Button className="cursor-pointer">
             <PlusCircle className="mr-2 h-4 w-4" />
             Nouveau patient
           </Button>

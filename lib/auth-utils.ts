@@ -1,6 +1,5 @@
 import { ApiError } from "@/lib/api-error";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 
 /**
@@ -9,7 +8,7 @@ import type { NextRequest } from "next/server";
  */
 export async function getAuthenticatedUser(req: NextRequest) {
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: req.headers,
   });
 
   if (!session || !session.user) {

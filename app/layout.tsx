@@ -1,3 +1,4 @@
+import { ReactQueryProviders } from "@/provider/tanstack";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -26,26 +27,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
+    <ReactQueryProviders>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <div>{children}</div>
-          <Toaster
-            position="top-right"
-            closeButton
-            richColors
-            expand={false}
-            visibleToasts={3}
-          />
-        </ThemeProvider>
-      </body>
-    </html>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div>{children}</div>
+            <Toaster
+              position="top-right"
+              closeButton
+              richColors
+              expand={false}
+              visibleToasts={3}
+            />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ReactQueryProviders>
   );
 }
