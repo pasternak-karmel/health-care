@@ -1,6 +1,6 @@
 import * as schema from "@/auth-schema";
 import { db } from "@/db";
-import { DEFAULT_REDIRECT_URL } from "@/routes";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -40,12 +40,12 @@ export const auth = betterAuth({
     github: {
       clientId: process.env.AUTH_GITHUB_ID!,
       clientSecret: process.env.AUTH_GITHUB_SECRET!,
-      redirectURI: DEFAULT_REDIRECT_URL,
+      redirectURI: DEFAULT_LOGIN_REDIRECT,
     },
     google: {
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-      redirectURI: DEFAULT_REDIRECT_URL,
+      redirectURI: DEFAULT_LOGIN_REDIRECT,
     },
   },
   plugins: [passkey(), twoFactor(), nextCookies()],
