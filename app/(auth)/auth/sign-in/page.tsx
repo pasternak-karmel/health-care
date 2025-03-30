@@ -1,17 +1,9 @@
-import SignInForm from "@/components/auth/SignInForm";
+import LoginPage from "@/app/login/page";
 import Link from "next/link";
 
 export default function SignInPage() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <SignInForm />
+      <LoginPage/>
 
-      <p className="mt-4 text-gray-700">
-        Pas encore de compte ?{" "}
-        <Link href="/auth/sign-up" className="text-blue-500 hover:underline">
-          Sinscrire ici
-        </Link>
-      </p>
-    </div>
   );
 }
