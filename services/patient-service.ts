@@ -1,72 +1,21 @@
+import { TraitementSchema } from "@/components/patients/traitement/type";
 import { db } from "@/db";
-import { infoMedical, patient } from "@/db/schema";
+import { infoMedical, patient, patientTraitement } from "@/db/schema";
 import { ApiError } from "@/lib/api-error";
 import { deleteCache, deleteCacheByPattern, withCache } from "@/lib/cache";
-import type {
-  CreatePatientInput,
-  PatientQueryParams,
-  UpdatePatientInput,
-} from "@/schemas/patient";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import type { CreatePatientInput, UpdatePatientInput } from "@/schemas/patient";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 export class PatientService {
   /**
-   * Get all patients with pagination and filtering
+   * Get all patients
    */
-  static async getPatients(params: PatientQueryParams) {
-    const { page, limit, search, stage, status, sortBy, sortOrder } = params;
-    const offset = (page - 1) * limit;
-
-    // Build the cache key based on query parameters
-    const cacheKey = `patients:list:${page}:${limit}:${search || ""}:${
-      stage || ""
-    }:${status || ""}:${sortBy}:${sortOrder}`;
+  static async getPatients() {
+    const cacheKey = `patients:list:`;
 
     return withCache(cacheKey, async () => {
-      // Build the where clause based on filters
-      let whereClause = undefined;
-      const filters = [];
-
-      if (search) {
-        filters.push(
-          sql`(${patient.firstname} || ' ' || ${
-            patient.lastname
-          }) ILIKE ${`%${search}%`}`
-        );
-      }
-
-      if (stage) {
-        filters.push(eq(infoMedical.stade, stage));
-      }
-
-      if (status) {
-        filters.push(eq(infoMedical.status, status));
-      }
-
-      if (filters.length > 0) {
-        whereClause = and(...filters);
-      }
-
-      // Build the order by clause
-      const orderBy = (() => {
-        const direction = sortOrder === "asc" ? asc : desc;
-
-        switch (sortBy) {
-          case "name":
-            return [direction(patient.lastname), direction(patient.firstname)];
-          case "stage":
-            return [direction(infoMedical.stade)];
-          case "dfg":
-            return [direction(infoMedical.dfg)];
-          case "lastVisit":
-            return [direction(infoMedical.lastvisite)];
-          default:
-            return [direction(patient.lastname), direction(patient.firstname)];
-        }
-      })();
-
-      // Execute the query with a join to get medical info
       const patients = await db
         .select({
           id: patient.id,
@@ -91,28 +40,8 @@ export class PatientService {
           },
         })
         .from(patient)
-        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId))
-        .where(whereClause)
-        .orderBy(...orderBy)
-        .limit(limit)
-        .offset(offset);
-
-      // Get total count for pagination
-      const [{ count }] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(patient)
-        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId))
-        .where(whereClause);
-
-      return {
-        data: patients,
-        pagination: {
-          page,
-          limit,
-          totalItems: count,
-          totalPages: Math.ceil(count / limit),
-        },
-      };
+        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId));
+      return patients;
     });
   }
 
@@ -393,5 +322,142 @@ export class PatientService {
       },
       300
     );
+  }
+
+  /**
+   * Get patient traitements
+   */
+  static async getPatientTraitements(patientId: string) {
+    const cacheKey = `patients:${patientId}:traitements`;
+
+    return withCache(
+      cacheKey,
+      async () => {
+        const traitements = await db
+          .select({
+            id: patientTraitement.id,
+            patientId: patientTraitement.patientId,
+            medicament: patientTraitement.medicament,
+            category: patientTraitement.category,
+            posologie: patientTraitement.posologie,
+            frequence: patientTraitement.frequence,
+            date: patientTraitement.date,
+            status: patientTraitement.status,
+            createdAt: patientTraitement.createdAt,
+            updatedAt: patientTraitement.updatedAt,
+          })
+          .from(patientTraitement)
+          .where(eq(patientTraitement.patientId, patientId));
+
+        return traitements;
+      },
+      300
+    );
+  }
+
+  /**
+   * Create a new patient traitement
+   */
+  static async createPatientTraitement(
+    medecin: string,
+    patientId: string,
+    data: z.infer<typeof TraitementSchema>
+  ) {
+    const { medicament, category, posologie, frequence } = data;
+    const now = new Date();
+
+    try {
+      await db.insert(patientTraitement).values({
+        patientId,
+        medicament,
+        category,
+        posologie,
+        frequence,
+        date: now,
+        medecin,
+      });
+
+      // Invalidate cache
+      await deleteCache(`patients:${patientId}:traitements`);
+
+      return this.getPatientTraitements(patientId);
+    } catch (error) {
+      console.error("Error creating patient traitement:", error);
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      throw ApiError.internalServer("Failed to create patient traitement");
+    }
+  }
+
+  /**
+   * Update a patient traitement
+   */
+  static async updatePatientTraitement(
+    id: string,
+    data: UpdatePatientTraitementInput
+  ) {
+    const now = new Date();
+
+    try {
+      // Check if patient traitement exists
+      const existingPatientTraitement = await this.getPatientTraitementById(id);
+
+      // Update patient traitement
+      await db
+        .update(patientTraitement)
+        .set({
+          medicament: data.medicament,
+          category: data.category,
+          posologie: data.posologie,
+          frequence: data.frequence,
+          date: data.date,
+          updatedAt: now,
+        })
+        .where(eq(patientTraitement.id, id));
+
+      // Invalidate cache
+      await deleteCache(
+        `patients:${existingPatientTraitement.patientId}:traitements`
+      );
+
+      return this.getPatientTraitements(existingPatientTraitement.patientId);
+    } catch (error) {
+      console.error("Error updating patient traitement:", error);
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      throw ApiError.internalServer("Failed to update patient traitement");
+    }
+  }
+
+  /**
+   * Delete a patient traitement
+   */
+  static async deletePatientTraitement(id: string) {
+    try {
+      // Check if patient traitement exists
+      await this.getPatientTraitementById(id);
+
+      // Delete patient traitement
+      await db.delete(patientTraitement).where(eq(patientTraitement.id, id));
+
+      // Invalidate cache
+      await deleteCache(`patients:${patientTraitement.patientId}:traitements`);
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting patient traitement:", error);
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      throw ApiError.internalServer("Failed to delete patient traitement");
+    }
   }
 }

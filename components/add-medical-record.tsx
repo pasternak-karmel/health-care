@@ -77,10 +77,8 @@ export function AddMedicalRecord({
     setIsSubmitting(true);
 
     try {
-      // Here you would normally send the data to your API
       console.log("New medical record:", { patientId, ...data });
 
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success("Événement médical ajouté avec succès");

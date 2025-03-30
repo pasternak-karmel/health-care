@@ -1,11 +1,12 @@
 import { handleApiError } from "@/lib/api-error";
 import { getAuthenticatedUser } from "@/lib/auth-utils";
 import { rateLimit } from "@/lib/rate-limit";
-import { createPatientSchema } from "@/schemas/patient";
 import { PatientService } from "@/services/patient-service";
 import type { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+type Params = Promise<{ id: string }>;
+
+export async function GET(req: NextRequest, segmentData: { params: Params }) {
   try {
     const rateLimitResult = await rateLimit(req, {
       limit: 100,
@@ -16,7 +17,10 @@ export async function GET(req: NextRequest) {
 
     await getAuthenticatedUser(req);
 
-    const result = await PatientService.getPatients();
+    const params = await segmentData.params;
+
+    
+    const result = await PatientService.getPatientTraitements(params.id);
 
     return Response.json(result);
   } catch (error) {
@@ -24,21 +28,25 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, segmentData: { params: Params }) {
   try {
     const rateLimitResult = await rateLimit(req, {
-      limit: 20,
+      limit: 50,
       window: 60,
     });
 
     if (rateLimitResult) return rateLimitResult;
 
-    await getAuthenticatedUser(req);
+    const user = await getAuthenticatedUser(req);
+    const params = await segmentData.params;
 
     const body = await req.json();
-    const validatedData = createPatientSchema.parse(body);
 
-    const result = await PatientService.createPatient(validatedData);
+    const result = await PatientService.createPatientTraitement(
+      user.id,
+      params.id,
+      body
+    );
 
     return Response.json(result, { status: 201 });
   } catch (error) {

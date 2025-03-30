@@ -41,6 +41,13 @@ export const infoMedical = pgTable("information_medical", {
     .defaultNow(),
 });
 
+// export const informationMedicalRelation = relations(infoMedical, ({ one }) => ({
+//   user: one(user, {
+//     fields: [infoMedical.patientId],
+//     references: [patient.id],
+//   }),
+// }));
+
 export const historique = pgTable("historique", {
   id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
   patientId: uuid("patient_id")
@@ -60,3 +67,35 @@ export const historique = pgTable("historique", {
     .notNull()
     .defaultNow(),
 });
+
+export const patientTraitement = pgTable("patient_traitement", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+  medicament: text("medicament").notNull(),
+  category: text("category").notNull(),
+  posologie: text("posologie").notNull(),
+  frequence: text("frequence").notNull(),
+  date: timestamp("date").notNull().defaultNow(),
+  medecin: text("medecin")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("actif"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// export const patientTraitementRelation = relations(
+//   patientTraitement,
+//   ({ one }) => ({
+//     user: one(user, {
+//       fields: [patientTraitement.medecin],
+//       references: [patient.id],
+//     }),
+//   })
+// );

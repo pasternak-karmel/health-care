@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertTriangle, Check, Plus, X } from "lucide-react";
+import { AlertTriangle, Check, X } from "lucide-react";
+import { AddTraitement } from "./traitement";
 
 interface PatientMedicationsProps {
   patientId: string;
@@ -89,10 +89,7 @@ export function PatientMedications({ patientId }: PatientMedicationsProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Traitements en cours</h3>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter un traitement
-        </Button>
+        <AddTraitement patientId={patientId} />
       </div>
 
       <div className="rounded-md border">

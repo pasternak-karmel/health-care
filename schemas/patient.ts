@@ -33,6 +33,25 @@ export const patientQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
 });
 
+export const patientSchema = z.object({
+  id: z.string(),
+  firstname: z.string(),
+  lastname: z.string(),
+  birthdate: z.string(),
+  sex: z.string(),
+  phone: z.string(),
+  address: z.string(),
+  medicalInfo: z.object({
+    stade: z.number(),
+    status: z.string(),
+    medecin: z.string(),
+    dfg: z.number(),
+    proteinurie: z.number(),
+    lastvisite: z.string(),
+    nextvisite: z.string(),
+  }),
+});
+
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 export type PatientQueryParams = z.infer<typeof patientQuerySchema>;

@@ -1,193 +1,181 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface Patient {
+export interface Patient {
   id: string;
   firstname: string;
   lastname: string;
-
+  birthdate: string;
+  sex: string;
+  phone: string;
+  address: string;
+  medicalInfo: {
+    stade: number;
+    status: string;
+    medecin: string;
+    dfg: number;
+    proteinurie: number;
+    previousDfg: number;
+    previousProteinurie: number;
+    lastvisite: string;
+    nextvisite: string;
+  };
 }
 
-interface UsePatientOptions {
-  onSuccess?: (data: any) => void;
-  onError?: (error: Error) => void;
+async function fetchPatients(): Promise<Patient[]> {
+  const response = await fetch(`/api/patients`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to fetch patients");
+  }
+
+  return response.json();
 }
 
-export function usePatient(options?: UsePatientOptions) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+async function fetchPatientById(id: string): Promise<Patient> {
+  const response = await fetch(`/api/patients/${id}`);
 
-  const getPatients = async (params?: Record<string, any>) => {
-    setIsLoading(true);
-    setError(null);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to fetch patient");
+  }
 
-    try {
-      const queryParams = new URLSearchParams();
+  return response.json();
+}
 
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            queryParams.append(key, String(value));
-          }
-        });
-      }
+async function createPatient(patientData: any): Promise<Patient> {
+  const response = await fetch("/api/patients", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patientData),
+  });
 
-      const response = await fetch(`/api/patients?${queryParams.toString()}`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to create patient");
+  }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch patients");
-      }
+  return response.json();
+}
 
-      const data = await response.json();
-      options?.onSuccess?.(data);
-      return data;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("An unknown error occurred");
-      setError(error);
-      options?.onError?.(error);
-      toast.error(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+async function updatePatient(id: string, patientData: any): Promise<Patient> {
+  const response = await fetch(`/api/patients/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patientData),
+  });
 
-  const getPatientById = async (id: string) => {
-    setIsLoading(true);
-    setError(null);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to update patient");
+  }
 
-    try {
-      const response = await fetch(`/api/patients/${id}`);
+  return response.json();
+}
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch patient");
-      }
+async function deletePatient(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`/api/patients/${id}`, { method: "DELETE" });
 
-      const data = await response.json();
-      options?.onSuccess?.(data);
-      return data;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("An unknown error occurred");
-      setError(error);
-      options?.onError?.(error);
-      toast.error(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to delete patient");
+  }
 
-  const createPatient = async (patientData: any) => {
-    setIsLoading(true);
-    setError(null);
+  return response.json();
+}
 
-    try {
-      const response = await fetch("/api/patients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(patientData),
-      });
+export function usePatient() {
+  const queryClient = useQueryClient();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create patient");
-      }
+  const {
+    data: patients,
+    isLoading: isLoadingPatients,
+    error: errorPatients,
+  } = useQuery({
+    queryKey: ["patients"],
+    queryFn: () => fetchPatients(),
+    staleTime: 1000 * 60 * 5,
+  });
 
-      const data = await response.json();
+  const createPatientMutation = useMutation({
+    mutationFn: createPatient,
+    onSuccess: () => {
       toast.success("Patient créé avec succès");
-      options?.onSuccess?.(data);
-      return data;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("An unknown error occurred");
-      setError(error);
-      options?.onError?.(error);
-      toast.error(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
-  const updatePatient = async (id: string, patientData: any) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/patients/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(patientData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update patient");
-      }
-
-      const data = await response.json();
+  const updatePatientMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      updatePatient(id, data),
+    onSuccess: () => {
       toast.success("Patient mis à jour avec succès");
-      options?.onSuccess?.(data);
-      return data;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("An unknown error occurred");
-      setError(error);
-      options?.onError?.(error);
-      toast.error(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
-  const deletePatient = async (id: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/patients/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete patient");
-      }
-
-      const data = await response.json();
+  const deletePatientMutation = useMutation({
+    mutationFn: deletePatient,
+    onSuccess: () => {
       toast.success("Patient supprimé avec succès");
-      options?.onSuccess?.(data);
-      return data;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("An unknown error occurred");
-      setError(error);
-      options?.onError?.(error);
-      toast.error(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
   return {
-    isLoading,
-    error,
-    getPatients,
-    getPatientById,
-    createPatient,
-    updatePatient,
-    deletePatient,
+    patients,
+    isLoadingPatients,
+    errorPatients,
+    createPatient: createPatientMutation.mutate,
+    updatePatient: updatePatientMutation.mutate,
+    deletePatient: deletePatientMutation.mutate,
   };
 }
+
+export function usePatientById(id: string) {
+  const queryClient = useQueryClient();
+
+  const {
+    data: patient,
+    isLoading: isLoadingPatient,
+    error: errorPatient,
+  } = useQuery({
+    queryKey: ["patients", id],
+    queryFn: () => fetchPatientById(id),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const updatePatientMutation = useMutation({
+    mutationFn: ({ data }: { data: any }) => updatePatient(id, data),
+    onSuccess: () => {
+      toast.success("Patient mis à jour avec succès");
+      queryClient.invalidateQueries({ queryKey: ["patients", id] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const deletePatientMutation = useMutation({
+    mutationFn: deletePatient,
+    onSuccess: () => {
+      toast.success("Patient supprimé avec succès");
+      queryClient.invalidateQueries({ queryKey: ["patients", id] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  return {
+    patient,
+    isLoadingPatient,
+    errorPatient,
+    updatePatient: updatePatientMutation.mutate,
+    deletePatient: deletePatientMutation.mutate,
+  };
+}
+
