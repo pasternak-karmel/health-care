@@ -1,6 +1,6 @@
 "use server";
 
-import { patient } from "@/auth-schema";
+import { patient } from "@/db/auth-schema";
 import { db } from "@/db";
 import { count, lt } from "drizzle-orm";
 

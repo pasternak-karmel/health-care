@@ -1,4 +1,4 @@
-import * as schema from "@/auth-schema";
+import * as schema from "@/db/auth-schema";
 import { db } from "@/db";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { betterAuth } from "better-auth";
