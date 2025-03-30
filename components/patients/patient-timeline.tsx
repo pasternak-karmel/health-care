@@ -1,5 +1,6 @@
 "use client";
 
+import { AddMedicalRecord } from "@/components/add-medical-record";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,14 @@ import {
   Pill,
   Stethoscope,
 } from "lucide-react";
+import { useState } from "react";
 
 interface PatientTimelineProps {
   patientId: string;
 }
 
 export function PatientTimeline({ patientId }: PatientTimelineProps) {
-  const events = [
+  const [events, setEvents] = useState([
     {
       id: "1",
       date: "05/04/2023",
@@ -85,10 +87,34 @@ export function PatientTimeline({ patientId }: PatientTimelineProps) {
       avatar: "/placeholder.svg?height=40&width=40",
       initials: "JD",
     },
-  ];
+  ]);
+
+  const handleRecordAdded = () => {
+    // In a real app, you would fetch the updated timeline
+    // For now, we'll simulate adding a new record at the top
+    const newEvent = {
+      id: `new-${Date.now()}`,
+      date: new Date().toLocaleDateString("fr-FR"),
+      type: "consultation",
+      title: "Nouvelle consultation",
+      description: "Consultation de suivi ajoutée via le formulaire.",
+      doctor: "Dr. Martin Lefèvre",
+      avatar: "/placeholder.svg?height=40&width=40",
+      initials: "ML",
+    };
+
+    setEvents([newEvent, ...events]);
+  };
 
   return (
     <div className="space-y-8">
+      <div className="flex justify-end">
+        <AddMedicalRecord
+          patientId={patientId}
+          onRecordAdded={handleRecordAdded}
+        />
+      </div>
+
       {events.map((event, index) => (
         <div key={event.id} className="relative pl-8 pb-8">
           {/* Ligne verticale */}

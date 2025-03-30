@@ -1,5 +1,5 @@
 {
-  "id": "dda9066c-148e-49dc-90bf-512332ac949a",
+  "id": "37e245ba-bd99-4b86-b1d8-366984874053",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -109,6 +109,206 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.historique": {
+      "name": "historique",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medecin": {
+          "name": "medecin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "historique_patient_id_patient_id_fk": {
+          "name": "historique_patient_id_patient_id_fk",
+          "tableFrom": "historique",
+          "tableTo": "patient",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "historique_medecin_user_id_fk": {
+          "name": "historique_medecin_user_id_fk",
+          "tableFrom": "historique",
+          "tableTo": "user",
+          "columnsFrom": [
+            "medecin"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.information_medical": {
+      "name": "information_medical",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stade": {
+          "name": "stade",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'stable'"
+        },
+        "medecin": {
+          "name": "medecin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dfg": {
+          "name": "dfg",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "previous_dfg": {
+          "name": "previous_dfg",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "proteinurie": {
+          "name": "proteinurie",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_visit": {
+          "name": "last_visit",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "next_visit": {
+          "name": "next_visit",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "information_medical_patient_id_patient_id_fk": {
+          "name": "information_medical_patient_id_patient_id_fk",
+          "tableFrom": "information_medical",
+          "tableTo": "patient",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.passkey": {
       "name": "passkey",
       "schema": "",
@@ -190,6 +390,80 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patient": {
+      "name": "patient",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "firstname": {
+          "name": "firstname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lastname": {
+          "name": "lastname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birthdate": {
+          "name": "birthdate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sex": {
+          "name": "sex",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

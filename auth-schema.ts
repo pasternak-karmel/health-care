@@ -4,6 +4,7 @@ import {
   integer,
   timestamp,
   boolean,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -80,3 +81,53 @@ export const twoFactor = pgTable("two_factor", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 });
+
+// enum Stage {}
+
+export const patient = pgTable("patient", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  firstname: text("firstname").notNull(),
+  lastname: text("lastname").notNull(),
+  birthdate: text("birthdate").notNull(),
+  email: text("email").notNull(),
+  sex: text("sex").notNull(),
+  phone: text("phone").notNull(),
+  address: text("address").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
+export const infoMedical = pgTable("information_medical", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+  stade: integer("stade").notNull().default(1),
+  status: text("status").notNull().default("stable"),
+  medecin: text("medecin").notNull(),
+  dfg: integer("dfg").notNull().default(0),
+  previousDfg: integer("previous_dfg").notNull().default(0),
+  proteinurie: integer("proteinurie").notNull().default(0),
+  previousProteinurie: integer("proteinurie").notNull().default(0),
+  lastvisite: timestamp("last_visit").notNull(),
+  nextvisite: timestamp("next_visit").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
+export const historique = pgTable("historique", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+  date: timestamp("date").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  type: text("type").notNull(),
+  medecin: text("medecin")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+

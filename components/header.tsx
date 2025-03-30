@@ -1,7 +1,7 @@
 "use client";
 
+import { AuthStatus } from "@/components/auth/AuthStatus";
 import Sidebar from "@/components/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,12 +13,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export default function Header() {
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     setIsMounted(true);
@@ -54,19 +56,26 @@ export default function Header() {
         </Sheet>
       )}
 
-      <div className="w-full flex-1 flex items-center">
-        {/* <form className="hidden md:flex-1 md:flex max-w-sm">
-          <div className="relative w-full">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Rechercher un patient..."
-              className="w-full pl-8"
-            />
-          </div>
-        </form> */}
+      <div className="w-full flex-1 flex items-center justify-between">
+        <div className="flex items-center">
+          <h1 className="text-xl font-bold md:hidden">Health Care</h1>
+        </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="mr-2"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="relative">
@@ -111,33 +120,7 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src="/placeholder.svg?height=32&width=32"
-                    alt="Dr. Nom"
-                  />
-                  <AvatarFallback>DN</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                Profil
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                Paramètres
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                Déconnexion
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AuthStatus />
         </div>
       </div>
     </header>
