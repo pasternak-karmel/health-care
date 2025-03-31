@@ -18,6 +18,8 @@ import type {
 import { and, asc, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
+import { formatDistanceToNow, isToday, isYesterday } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export class PatientService {
   /**
@@ -639,12 +641,36 @@ export class PatientService {
           .orderBy(asc(infoMedical.nextvisite))
           .limit(5);
 
+        //Get Recent Patient data
+        const recentPatientsQuery = await db
+          .select({
+            id: patient.id,
+            name: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
+            lastVisit: infoMedical.lastvisite,
+            stage: infoMedical.stade,
+            age: sql<number>`14`, //TODO: Calculate age
+            critical: eq(infoMedical.status, "critical"),
+            initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname}, 1, 1)`,
+            avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
+            updatedAt: patient.updatedAt,
+          })
+          .from(patient)
+          .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+          .orderBy(desc(infoMedical.lastvisite))
+          .limit(5);
+
+        const recentPatients = recentPatientsQuery.map((patient) => ({
+          ...patient,
+          lastVisit: formatLastVisit(new Date(patient.lastVisit)),
+        }));
+
         return {
           totalPatients,
           stageDistribution,
           statusDistribution,
           criticalPatients,
           upcomingAppointments,
+          recentPatients,
         };
       },
       300
@@ -732,5 +758,15 @@ export class PatientService {
       console.error("Error getting patient treatments:", error);
       throw ApiError.internalServer("Failed to get patient treatments");
     }
+  }
+}
+
+function formatLastVisit(lastvisit: Date): string {
+  if (isToday(lastvisit)) {
+    return "Aujourd'hui";
+  } else if (isYesterday(lastvisit)) {
+    return "Hier";
+  } else {
+    return formatDistanceToNow(lastvisit, { locale: fr, addSuffix: true });
   }
 }

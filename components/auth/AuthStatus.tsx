@@ -13,24 +13,21 @@ import {
 import { signOut, useSession } from "@/lib/auth-client";
 import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function AuthStatus() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const user = session?.user;
+  const router = useRouter();
+
+  if(isPending) {
+    return <div>Loading...</div> //TODO: Add a spinner or loader
+  }
 
   if (!user) {
-    return (
-      <div className="flex items-center gap-2">
-        <Link href="/auth/login">
-          <Button variant="outline" size="sm">
-            Se connecter
-          </Button>
-        </Link>
-        <Link href="/auth/register">
-          <Button size="sm">S&apos;inscrire</Button>
-        </Link>
-      </div>
-    );
+    const currentUrl = encodeURIComponent(window.location.href);
+    router.push(`/auth/sign-in?callbackUrl=${currentUrl}`);
+    return null;
   }
 
   const initials = user.name

@@ -14,6 +14,16 @@ export interface DashboardStats {
     lastname: string;
     appointmentDate: string;
   }>;
+  recentPatients: Array<{
+    id: string;
+    name: string;
+    lastVisit: string;
+    stage: number;
+    age: number;
+    critical: boolean;
+    avatar: string;
+    initials: string;
+  }>;
 }
 
 async function fetchDashboardStats(): Promise<DashboardStats> {

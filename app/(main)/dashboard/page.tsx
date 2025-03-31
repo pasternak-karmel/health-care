@@ -1,3 +1,5 @@
+"use client";
+
 import { PatientOverview } from "@/components/dashboard/patient-overview";
 import { RecentAlerts } from "@/components/dashboard/recent-alerts";
 import { StageDistribution } from "@/components/dashboard/stage-distribution";
@@ -12,10 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDashboard } from "@/hooks/use-dashboard";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function Dashboard() {
+  const { data: stats, isLoading, error } = useDashboard();
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
@@ -28,7 +33,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <SectionCards />
+      <SectionCards stats={stats} isLoading={isLoading} error={error} />
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
@@ -43,11 +48,11 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle>Patients récemment consultés</CardTitle>
                 <CardDescription>
-                  Les 5 derniers patients consultés
+                  Les {stats?.recentPatients.length || 0} dernier(s) patients consultés
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <PatientOverview />
+                <PatientOverview patients={stats?.recentPatients || []} />
               </CardContent>
             </Card>
             <Card className="col-span-3">

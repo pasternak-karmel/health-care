@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
-import LoginPage from "./login/page";
+import SignInPage from "./(auth)/auth/sign-in/page";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -16,7 +16,7 @@ export default function Home() {
           </Link>
         </div>
       ) : (
-        <LoginPage />
+        <SignInPage />
       )}
     </div>
   );

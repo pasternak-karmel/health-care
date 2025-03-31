@@ -6,60 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 
-const patients = [
-  {
-    id: "1",
-    name: "Martin Dupont",
-    age: 67,
-    stage: 3,
-    lastVisit: "Aujourd'hui",
-    critical: false,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "MD",
-  },
-  {
-    id: "2",
-    name: "Sophie Laurent",
-    age: 72,
-    stage: 4,
-    lastVisit: "Hier",
-    critical: true,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "SL",
-  },
-  {
-    id: "3",
-    name: "Jean Petit",
-    age: 58,
-    stage: 2,
-    lastVisit: "Il y a 3 jours",
-    critical: false,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "JP",
-  },
-  {
-    id: "4",
-    name: "Marie Leroy",
-    age: 63,
-    stage: 3,
-    lastVisit: "Il y a 5 jours",
-    critical: false,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "ML",
-  },
-  {
-    id: "5",
-    name: "Philippe Moreau",
-    age: 75,
-    stage: 5,
-    lastVisit: "Il y a 1 semaine",
-    critical: true,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "PM",
-  },
-];
+type Patient = {
+  id: string;
+  name: string;
+  age: number;
+  stage: number;
+  lastVisit: string;
+  critical: boolean;
+  avatar: string;
+  initials: string;
+};
 
-export function PatientOverview() {
+export function PatientOverview({ patients }: { patients: Patient[] }) {
   return (
     <div className="space-y-4">
       {patients.map((patient) => (
