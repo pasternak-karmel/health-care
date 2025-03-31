@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db";
 import { labResults, patient } from "@/db/schema";
 import { ApiError } from "@/lib/api-error";
@@ -296,7 +297,9 @@ export class LabResultsService {
         // Extract the specific test values from each result
         const trends = results
           .map((result) => {
-            const parsedResults = JSON.parse(result.results);
+            const parsedResults = JSON.parse(
+              result.results as unknown as string
+            );
             const testResult = parsedResults.find(
               (r: LabTestResult) =>
                 r.name.toLowerCase() === testName.toLowerCase()
@@ -350,7 +353,7 @@ export class LabResultsService {
         const testNames = new Set<string>();
 
         results.forEach((result) => {
-          const parsedResults = JSON.parse(result.results);
+          const parsedResults = JSON.parse(result.results as unknown as string);
           parsedResults.forEach((r: LabTestResult) => {
             testNames.add(r.name);
           });

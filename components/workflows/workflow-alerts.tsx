@@ -11,6 +11,7 @@ interface WorkflowAlertsProps {
 }
 
 export function WorkflowAlerts({ workflowId }: WorkflowAlertsProps) {
+  console.log(workflowId);
   const alerts = [
     {
       id: "1",

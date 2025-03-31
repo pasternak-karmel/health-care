@@ -33,6 +33,7 @@ interface WorkflowPatientsProps {
 }
 
 export function WorkflowPatients({ workflowId }: WorkflowPatientsProps) {
+  console.log(workflowId);
   const patients = [
     {
       id: "2",

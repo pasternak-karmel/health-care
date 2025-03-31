@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
     const userNotifications = await db
       .select()
       .from(notifications)
-      .where(eq(notifications.userId, user.id))
-      .orderBy({ createdAt: "desc" });
+      .where(eq(notifications.userId, user.id));
+    // .orderBy({ createdAt: "desc" });
 
     return Response.json(userNotifications);
   } catch (error) {

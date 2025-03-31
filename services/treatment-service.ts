@@ -234,6 +234,7 @@ export class TreatmentService {
       const existingTreatment = await this.getTreatmentById(id);
 
       // Prepare update fields
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateFields: any = {
         updatedAt: now,
       };

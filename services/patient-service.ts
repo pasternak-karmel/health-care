@@ -15,11 +15,11 @@ import type {
   PatientQueryParams,
   UpdatePatientInput,
 } from "@/schemas/patient";
+import { formatDistanceToNow, isToday, isYesterday } from "date-fns";
+import { fr } from "date-fns/locale";
 import { and, asc, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
-import { formatDistanceToNow, isToday, isYesterday } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 export class PatientService {
   /**
@@ -305,6 +305,16 @@ export class PatientService {
     try {
       const existingPatient = await this.getPatientById(id);
 
+      const user = await auth.api.getSession({
+        headers: await headers(),
+      });
+
+      if (!user || !user.user) {
+        throw ApiError.unauthorized(
+          "Vous devez être connecté pour modifier un patient"
+        );
+      }
+
       await db.transaction(async (tx) => {
         const patientFields: any = {};
 
@@ -335,13 +345,13 @@ export class PatientService {
           if (medecin !== undefined) medicalFields.medecin = medecin;
 
           if (dfg !== undefined) {
-            medicalFields.previousDfg = existingPatient.medicalInfo.dfg;
+            medicalFields.previousDfg = existingPatient.medicalInfo?.dfg;
             medicalFields.dfg = dfg;
           }
 
           if (proteinurie !== undefined) {
             medicalFields.previousProteinurie =
-              existingPatient.medicalInfo.proteinurie;
+              existingPatient.medicalInfo?.proteinurie;
             medicalFields.proteinurie = proteinurie;
           }
 
@@ -359,18 +369,18 @@ export class PatientService {
             let description = "Mise à jour des informations médicales: ";
 
             if (dfg !== undefined) {
-              description += `DFG ${existingPatient.medicalInfo.dfg} → ${dfg} ml/min. `;
+              description += `DFG ${existingPatient.medicalInfo?.dfg} → ${dfg} ml/min. `;
             }
 
             if (proteinurie !== undefined) {
-              description += `Protéinurie ${existingPatient.medicalInfo.proteinurie} → ${proteinurie} g/24h. `;
+              description += `Protéinurie ${existingPatient.medicalInfo?.proteinurie} → ${proteinurie} g/24h. `;
             }
 
             if (
               status !== undefined &&
-              status !== existingPatient.medicalInfo.status
+              status !== existingPatient.medicalInfo?.status
             ) {
-              description += `Statut ${existingPatient.medicalInfo.status} → ${status}. `;
+              description += `Statut ${existingPatient.medicalInfo?.status} → ${status}. `;
             }
 
             await tx.insert(historique).values({
@@ -380,7 +390,8 @@ export class PatientService {
               title: "Mise à jour des paramètres médicaux",
               description,
               type: "consultation",
-              medecin: medecin || existingPatient.medicalInfo.medecin,
+              medecin:
+                medecin || existingPatient.medicalInfo?.medecin || user.user.id,
               createdAt: now,
               updatedAt: now,
             });

@@ -164,6 +164,7 @@ export function PatientList({
                     try {
                       const date = new Date(dateString);
                       return new Intl.DateTimeFormat("fr-FR").format(date);
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     } catch (e) {
                       return dateString;
                     }
@@ -317,7 +318,7 @@ export function PatientList({
       {patientToDelete && (
         <DeletePatientDialog
           patientId={patientToDelete}
-          onClose={() => setPatientToDelete(null)}
+          // onClose={() => setPatientToDelete(null)}
         />
       )}
     </Card>

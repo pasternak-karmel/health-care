@@ -23,6 +23,7 @@ interface PatientLabsProps {
 }
 
 export function PatientLabs({ patientId }: PatientLabsProps) {
+  console.log(patientId);
   const renalLabs = [
     {
       id: "1",

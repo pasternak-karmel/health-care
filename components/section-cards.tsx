@@ -2,17 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton"; // Import du Skeleton
-import { useDashboard } from "@/hooks/use-dashboard";
 import { AlertTriangle, Bell, Calendar, Users } from "lucide-react";
 
 type SectionCardsProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stats: any;
   isLoading: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any;
 };
 
 export function SectionCards({ stats, isLoading, error }: SectionCardsProps) {
-
   if (error) {
     return <p className="text-red-500">Erreur: {error.message}</p>;
   }
