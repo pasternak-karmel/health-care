@@ -69,7 +69,9 @@ export function SectionCards({ stats, isLoading, error }: SectionCardsProps) {
             <Skeleton className="h-8 w-16" />
           ) : (
             <div className="text-2xl font-bold">
-              {stats?.upcomingAppointments?.length ?? 0}
+              {stats?.upcomingAppointments?.filter((appointment: { date: string; }) => {
+                return appointment.date === "Aujourd'hui";
+              } ).length ?? 0}
             </div>
           )}
           <p className="text-xs text-muted-foreground">

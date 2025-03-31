@@ -51,7 +51,7 @@ export default function SignInForm() {
           if (data?.success) {
             form.reset();
             toast.success(data.success);
-            router.push(DEFAULT_LOGIN_REDIRECT);
+            router.push(callbackUrl || DEFAULT_LOGIN_REDIRECT);
           }
         })
         .catch(() => toast.error("Something went wrong"));

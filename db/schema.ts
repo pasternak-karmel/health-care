@@ -55,7 +55,7 @@ export const historique = pgTable("historique", {
     .notNull()
     .references(() => patient.id, { onDelete: "cascade" }),
   date: timestamp("date", { withTimezone: true }).notNull(),
-  title: text("title").notNull(),
+  isResolved: boolean("isResolved").$default(() => false),
   description: text("description").notNull(),
   type: text("type").notNull(),
   medecin: text("medecin")

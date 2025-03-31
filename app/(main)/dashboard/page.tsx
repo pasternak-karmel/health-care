@@ -90,7 +90,7 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UpcomingAppointments />
+              <UpcomingAppointments appointments={stats?.upcomingAppointments || []} />
             </CardContent>
           </Card>
         </TabsContent>

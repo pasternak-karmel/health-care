@@ -623,12 +623,16 @@ export class PatientService {
         const nextWeek = new Date();
         nextWeek.setDate(nextWeek.getDate() + 7);
 
-        const upcomingAppointments = await db
+        const upcomingAppointmentsQuery = await db
           .select({
-            id: patient.id,
-            firstname: patient.firstname,
-            lastname: patient.lastname,
-            appointmentDate: infoMedical.nextvisite,
+            patient: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
+            date: infoMedical.nextvisite,
+            patientId: patient.id,
+            type: sql<string>`'Consultation'`, //TODO: Add appointment type
+            virtual: sql<boolean>`false`, //TODO: Add virtual appointment flag
+            avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
+            initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname},
+            1, 1)`,
           })
           .from(patient)
           .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
@@ -640,6 +644,13 @@ export class PatientService {
           )
           .orderBy(asc(infoMedical.nextvisite))
           .limit(5);
+
+          const upcomingAppointments = upcomingAppointmentsQuery.map((appointment, index) => ({
+            ...appointment,
+            id: index + 1,
+            date: formatDate(new Date(appointment.date), false),
+            time: new Date(appointment.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          }));
 
         //Get Recent Patient data
         const recentPatientsQuery = await db
@@ -661,8 +672,17 @@ export class PatientService {
 
         const recentPatients = recentPatientsQuery.map((patient) => ({
           ...patient,
-          lastVisit: formatLastVisit(new Date(patient.lastVisit)),
+          lastVisit: formatDate(new Date(patient.lastVisit)),
         }));
+
+        const alerts = await db
+          .select({
+
+          })
+          .from(patient)
+          .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+          .orderBy(desc(infoMedical.lastvisite))
+          .limit(5);
 
         return {
           totalPatients,
@@ -761,7 +781,7 @@ export class PatientService {
   }
 }
 
-function formatLastVisit(lastvisit: Date): string {
+function formatDate(lastvisit: Date, addSuffix=true): string {
   if (isToday(lastvisit)) {
     return "Aujourd'hui";
   } else if (isYesterday(lastvisit)) {

@@ -10,9 +10,14 @@ export interface DashboardStats {
   criticalPatients: number;
   upcomingAppointments: Array<{
     id: string;
-    firstname: string;
-    lastname: string;
-    appointmentDate: string;
+    patient: string;
+    patientId: string;
+    date: string;
+    time: string;
+    type: string;
+    virtual: boolean;
+    avatar: string;
+    initials: string;
   }>;
   recentPatients: Array<{
     id: string;
@@ -46,6 +51,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
     throw error;
   }
 }
+
 
 export function useDashboard() {
   return useQuery({
