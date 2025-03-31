@@ -5,8 +5,13 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import du Skeleton
 import { useDashboard } from "@/hooks/use-dashboard";
 import { AlertTriangle, Bell, Calendar, Users } from "lucide-react";
 
-export function SectionCards() {
-  const { data: stats, isLoading, error } = useDashboard();
+type SectionCardsProps = {
+  stats: any;
+  isLoading: boolean;
+  error: any;
+};
+
+export function SectionCards({ stats, isLoading, error }: SectionCardsProps) {
 
   if (error) {
     return <p className="text-red-500">Erreur: {error.message}</p>;

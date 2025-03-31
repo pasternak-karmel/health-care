@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 export function StageDistribution() {
   const chartRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const textColor = theme === "dark" ? "#ffffff" : "#000000";
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -99,7 +102,7 @@ export function StageDistribution() {
       ctx.fillRect(legendX, legendY, legendSquareSize, legendSquareSize);
 
       // Draw label
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = textColor;
       ctx.font = "12px sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
@@ -111,7 +114,7 @@ export function StageDistribution() {
 
       legendY += legendSpacing;
     });
-  }, []);
+  }, [theme]);
 
   return (
     <div className="w-full h-full flex items-center justify-center">
