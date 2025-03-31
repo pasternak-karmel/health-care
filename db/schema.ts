@@ -1,5 +1,13 @@
 import { createId } from "@paralleldrive/cuid2";
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  json,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 export const patient = pgTable("patient", {
@@ -41,13 +49,6 @@ export const infoMedical = pgTable("information_medical", {
     .defaultNow(),
 });
 
-// export const informationMedicalRelation = relations(infoMedical, ({ one }) => ({
-//   user: one(user, {
-//     fields: [infoMedical.patientId],
-//     references: [patient.id],
-//   }),
-// }));
-
 export const historique = pgTable("historique", {
   id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
   patientId: uuid("patient_id")
@@ -78,10 +79,13 @@ export const patientTraitement = pgTable("patient_traitement", {
   posologie: text("posologie").notNull(),
   frequence: text("frequence").notNull(),
   date: timestamp("date").notNull().defaultNow(),
+  endDate: timestamp("end_date"),
   medecin: text("medecin")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("actif"),
+  status: text("status").notNull().default("active"),
+  notes: text("notes"),
+  interactions: boolean("interactions").default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -90,12 +94,54 @@ export const patientTraitement = pgTable("patient_traitement", {
     .defaultNow(),
 });
 
-// export const patientTraitementRelation = relations(
-//   patientTraitement,
-//   ({ one }) => ({
-//     user: one(user, {
-//       fields: [patientTraitement.medecin],
-//       references: [patient.id],
-//     }),
-//   })
-// );
+// New tables for lab results and vital signs
+export const labResults = pgTable("lab_results", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+  date: timestamp("date", { withTimezone: true }).notNull(),
+  results: json("results").notNull(),
+  labName: text("lab_name"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const vitalSigns = pgTable("vital_signs", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+  date: timestamp("date", { withTimezone: true }).notNull(),
+  measurements: json("measurements").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  patientId: uuid("patient_id").references(() => patient.id, {
+    onDelete: "cascade",
+  }),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'info', 'warning', 'critical'
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

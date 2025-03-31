@@ -9,7 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTreatments } from "@/hooks/patient/use-treatments";
 import { AlertTriangle, Check, X } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 import { AddTraitement } from "./traitement";
 
 interface PatientMedicationsProps {
@@ -17,73 +19,14 @@ interface PatientMedicationsProps {
 }
 
 export function PatientMedications({ patientId }: PatientMedicationsProps) {
-  const medications = [
-    {
-      id: "1",
-      name: "Furosémide",
-      dosage: "40 mg",
-      frequency: "1 fois par jour",
-      startDate: "01/03/2023",
-      endDate: null,
-      status: "active",
-      prescribedBy: "Dr. Martin Lefèvre",
-      notes: "Augmentation de la dose le 05/04/2023 (précédemment 20mg)",
-      interactions: false,
-      category: "diurétique",
-    },
-    {
-      id: "2",
-      name: "Amlodipine",
-      dosage: "5 mg",
-      frequency: "1 fois par jour",
-      startDate: "05/04/2023",
-      endDate: null,
-      status: "active",
-      prescribedBy: "Dr. Martin Lefèvre",
-      notes: "Ajouté pour contrôle tensionnel",
-      interactions: false,
-      category: "antihypertenseur",
-    },
-    {
-      id: "3",
-      name: "Sévélamer",
-      dosage: "800 mg",
-      frequency: "3 fois par jour",
-      startDate: "01/03/2023",
-      endDate: null,
-      status: "active",
-      prescribedBy: "Dr. Martin Lefèvre",
-      notes: "À prendre pendant les repas",
-      interactions: true,
-      category: "chélateur du phosphore",
-    },
-    {
-      id: "4",
-      name: "Darbépoétine alfa",
-      dosage: "40 μg",
-      frequency: "1 fois par semaine",
-      startDate: "01/03/2023",
-      endDate: null,
-      status: "active",
-      prescribedBy: "Dr. Martin Lefèvre",
-      notes: "Injection sous-cutanée",
-      interactions: false,
-      category: "agent stimulant l'érythropoïèse",
-    },
-    {
-      id: "5",
-      name: "Ramipril",
-      dosage: "5 mg",
-      frequency: "1 fois par jour",
-      startDate: "15/01/2023",
-      endDate: "05/04/2023",
-      status: "discontinued",
-      prescribedBy: "Dr. Martin Lefèvre",
-      notes: "Arrêté en raison d'une toux persistante",
-      interactions: false,
-      category: "inhibiteur de l'enzyme de conversion",
-    },
-  ];
+  const { data: medications, isLoading, error } = useTreatments(patientId);
+
+  if (isLoading)
+    return <Skeleton className="h-[300px] w-full border rounded-md" />;
+
+  if (error) return <div>Erreur lors du chargement des traitements</div>;
+
+  if (!medications) return <div>Aucun traitement disponible</div>;
 
   return (
     <div className="space-y-4">
@@ -109,14 +52,14 @@ export function PatientMedications({ patientId }: PatientMedicationsProps) {
             {medications.map((medication) => (
               <TableRow key={medication.id}>
                 <TableCell>
-                  <div className="font-medium">{medication.name}</div>
+                  <div className="font-medium">{medication.medicament}</div>
                   <div className="text-xs text-muted-foreground">
                     {medication.category}
                   </div>
                 </TableCell>
-                <TableCell>{medication.dosage}</TableCell>
-                <TableCell>{medication.frequency}</TableCell>
-                <TableCell>{medication.startDate}</TableCell>
+                <TableCell>{medication.posologie}</TableCell>
+                <TableCell>{medication.frequence}</TableCell>
+                <TableCell>{medication.status}</TableCell>
                 <TableCell>
                   {medication.status === "active" && (
                     <Badge
@@ -137,7 +80,7 @@ export function PatientMedications({ patientId }: PatientMedicationsProps) {
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell>{medication.prescribedBy}</TableCell>
+                <TableCell>{medication.medecin}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     {medication.notes}

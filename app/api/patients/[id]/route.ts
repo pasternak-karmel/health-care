@@ -6,6 +6,7 @@ import { PatientService } from "@/services/patient-service";
 import type { NextRequest } from "next/server";
 
 type Params = Promise<{ id: string }>;
+
 export async function GET(req: NextRequest, segmentData: { params: Params }) {
   try {
     const rateLimitResult = await rateLimit(req, {
@@ -35,12 +36,16 @@ export async function PUT(req: NextRequest, segmentData: { params: Params }) {
 
     if (rateLimitResult) return rateLimitResult;
 
-    await getAuthenticatedUser(req);
-
-    const body = await req.json();
-    const validatedData = updatePatientSchema.parse(body);
-
+    const user = await getAuthenticatedUser(req);
     const params = await segmentData.params;
+    const body = await req.json();
+
+    // If medecin is not provided in the update, use the authenticated user's name
+    if (body.medicalInfo && !body.medicalInfo.medecin) {
+      body.medicalInfo.medecin = user.name || user.email;
+    }
+
+    const validatedData = updatePatientSchema.parse(body);
 
     const result = await PatientService.updatePatient(params.id, validatedData);
 

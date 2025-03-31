@@ -1,4 +1,5 @@
 "use client";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,18 +11,44 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePatientById } from "@/hooks/use-patient";
+import { usePatient } from "@/hooks/patient/use-patient";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Activity, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
-interface DetailsPatientProps {
+interface PatientDetailsProps {
   id: string;
 }
 
-const DetailsPatient = ({ id }: DetailsPatientProps) => {
-  const { patient, isLoadingPatient } = usePatientById(id);
+export function PatientDetails({ id }: PatientDetailsProps) {
+  const { data: patient, isLoading, error } = usePatient(id);
 
-  if (isLoadingPatient) {
+  if (error) {
+    return (
+      <Card className="md:col-span-2">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="rounded-full bg-destructive/10 p-4">
+              <TrendingDown className="h-8 w-8 text-destructive" />
+            </div>
+            <h2 className="text-xl font-bold">
+              Erreur lors du chargement des données
+            </h2>
+            <p className="text-muted-foreground">
+              {error.message ||
+                "Une erreur est survenue lors du chargement des données du patient"}
+            </p>
+            <Button asChild>
+              <Link href="/patients">Retour à la liste des patients</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
     return (
       <Card className="md:col-span-2">
         <CardHeader className="flex flex-row items-center gap-4">
@@ -90,6 +117,28 @@ const DetailsPatient = ({ id }: DetailsPatientProps) => {
       ? "down"
       : "stable";
 
+  // Calculate age from birthdate
+  const calculateAge = (birthdate: string) => {
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Format dates
+  const formatDate = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), "dd MMMM yyyy", { locale: fr });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   return (
     <Card className="md:col-span-2">
       <CardHeader className="flex flex-row items-center gap-4">
@@ -104,13 +153,36 @@ const DetailsPatient = ({ id }: DetailsPatientProps) => {
             {patient.firstname} {patient.lastname}
           </CardTitle>
           <CardDescription>
-            {new Date().getFullYear() -
-              new Date(patient.birthdate).getFullYear()}{" "}
-            ans • {patient.sex}
+            {calculateAge(patient.birthdate)} ans •{" "}
+            {patient.sex === "M" ? "Homme" : "Femme"}
           </CardDescription>
           <div className="mt-1">
             {patient.medicalInfo.status === "critical" && (
               <Badge variant="destructive">Critique</Badge>
+            )}
+            {patient.medicalInfo.status === "worsening" && (
+              <Badge
+                variant="outline"
+                className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200"
+              >
+                En détérioration
+              </Badge>
+            )}
+            {patient.medicalInfo.status === "improving" && (
+              <Badge
+                variant="outline"
+                className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200"
+              >
+                En amélioration
+              </Badge>
+            )}
+            {patient.medicalInfo.status === "stable" && (
+              <Badge
+                variant="outline"
+                className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200"
+              >
+                Stable
+              </Badge>
             )}
           </div>
         </div>
@@ -123,11 +195,13 @@ const DetailsPatient = ({ id }: DetailsPatientProps) => {
             </h3>
             <div className="grid grid-cols-[1fr_auto] gap-1 text-sm">
               <div className="font-medium">Date de naissance</div>
-              <div>{patient.birthdate}</div>
-              <div className="font-medium">Adresse</div>
-              <div>{patient.address}</div>
+              <div>{formatDate(patient.birthdate)}</div>
+              <div className="font-medium">Email</div>
+              <div>{patient.email}</div>
               <div className="font-medium">Téléphone</div>
               <div>{patient.phone}</div>
+              <div className="font-medium">Adresse</div>
+              <div>{patient.address}</div>
             </div>
           </div>
 
@@ -175,9 +249,9 @@ const DetailsPatient = ({ id }: DetailsPatientProps) => {
             </h3>
             <div className="grid grid-cols-[1fr_auto] gap-1 text-sm">
               <div className="font-medium">Dernière visite</div>
-              <div>{patient.medicalInfo.lastvisite}</div>
+              <div>{formatDate(patient.medicalInfo.lastvisite)}</div>
               <div className="font-medium">Prochain rendez-vous</div>
-              <div>{patient.medicalInfo.nextvisite}</div>
+              <div>{formatDate(patient.medicalInfo.nextvisite)}</div>
             </div>
           </div>
 
@@ -193,6 +267,4 @@ const DetailsPatient = ({ id }: DetailsPatientProps) => {
       </CardContent>
     </Card>
   );
-};
-
-export default DetailsPatient;
+}

@@ -1,21 +1,90 @@
-import { TraitementSchema } from "@/components/patients/traitement/type";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db";
-import { infoMedical, patient, patientTraitement } from "@/db/schema";
+import { user } from "@/db/auth-schema";
+import {
+  historique,
+  infoMedical,
+  patient,
+  patientTraitement,
+} from "@/db/schema";
 import { ApiError } from "@/lib/api-error";
+import { auth } from "@/lib/auth";
 import { deleteCache, deleteCacheByPattern, withCache } from "@/lib/cache";
-import type { CreatePatientInput, UpdatePatientInput } from "@/schemas/patient";
-import { and, asc, eq, sql } from "drizzle-orm";
+import type {
+  CreatePatientInput,
+  PatientQueryParams,
+  UpdatePatientInput,
+} from "@/schemas/patient";
+import { and, asc, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
+import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 
 export class PatientService {
   /**
-   * Get all patients
+   * Get all patients with filtering, sorting, and pagination
    */
-  static async getPatients() {
-    const cacheKey = `patients:list:`;
+  static async getPatients(params?: PatientQueryParams) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      stage,
+      status,
+      sortBy = "name",
+      sortOrder = "asc",
+    } = params || {};
+
+    const offset = (page - 1) * limit;
+    const cacheKey = `patients:list:${page}:${limit}:${search || ""}:${
+      stage || ""
+    }:${status || ""}:${sortBy}:${sortOrder}`;
 
     return withCache(cacheKey, async () => {
+      // Build the where clause based on filters
+      let whereClause = undefined;
+      const filters = [];
+
+      if (search) {
+        filters.push(
+          or(
+            ilike(patient.firstname, `%${search}%`),
+            ilike(patient.lastname, `%${search}%`),
+            ilike(patient.email, `%${search}%`)
+          )
+        );
+      }
+
+      if (stage) {
+        filters.push(eq(infoMedical.stade, Number(stage)));
+      }
+
+      if (status) {
+        filters.push(eq(infoMedical.status, status));
+      }
+
+      if (filters.length > 0) {
+        whereClause = and(...filters);
+      }
+
+      // Build the order by clause
+      const orderBy = (() => {
+        const direction = sortOrder === "asc" ? asc : desc;
+
+        switch (sortBy) {
+          case "name":
+            return [direction(patient.lastname), direction(patient.firstname)];
+          case "stage":
+            return [direction(infoMedical.stade)];
+          case "dfg":
+            return [direction(infoMedical.dfg)];
+          case "lastVisit":
+            return [direction(infoMedical.lastvisite)];
+          default:
+            return [direction(patient.lastname)];
+        }
+      })();
+
+      // Execute the query
       const patients = await db
         .select({
           id: patient.id,
@@ -34,19 +103,41 @@ export class PatientService {
             status: infoMedical.status,
             medecin: infoMedical.medecin,
             dfg: infoMedical.dfg,
+            previousDfg: infoMedical.previousDfg,
             proteinurie: infoMedical.proteinurie,
+            previousProteinurie: infoMedical.previousProteinurie,
             lastvisite: infoMedical.lastvisite,
             nextvisite: infoMedical.nextvisite,
           },
         })
         .from(patient)
-        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId));
-      return patients;
+        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .where(whereClause)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset);
+
+      // Get total count for pagination
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(patient)
+        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .where(whereClause);
+
+      return {
+        data: patients,
+        pagination: {
+          page,
+          limit,
+          totalItems: Number(count),
+          totalPages: Math.ceil(Number(count) / limit),
+        },
+      };
     });
   }
 
   /**
-   * Get a patient by ID
+   * Get a patient by ID with all related information
    */
   static async getPatientById(id: string) {
     const cacheKey = `patients:${id}`;
@@ -70,7 +161,9 @@ export class PatientService {
             status: infoMedical.status,
             medecin: infoMedical.medecin,
             dfg: infoMedical.dfg,
+            previousDfg: infoMedical.previousDfg,
             proteinurie: infoMedical.proteinurie,
+            previousProteinurie: infoMedical.previousProteinurie,
             lastvisite: infoMedical.lastvisite,
             nextvisite: infoMedical.nextvisite,
           },
@@ -83,12 +176,31 @@ export class PatientService {
         throw ApiError.notFound(`Patient with ID ${id} not found`);
       }
 
-      return result;
+      // Get patient's medical history
+      const medicalHistory = await db
+        .select()
+        .from(historique)
+        .where(eq(historique.patientId, id))
+        .orderBy(desc(historique.date))
+        .limit(10);
+
+      // Get patient's treatments
+      const treatments = await db
+        .select()
+        .from(patientTraitement)
+        .where(eq(patientTraitement.patientId, id))
+        .orderBy(desc(patientTraitement.createdAt));
+
+      return {
+        ...result,
+        medicalHistory,
+        treatments,
+      };
     });
   }
 
   /**
-   * Create a new patient
+   * Create a new patient with medical information
    */
   static async createPatient(data: CreatePatientInput) {
     const {
@@ -105,6 +217,25 @@ export class PatientService {
     const now = new Date();
 
     try {
+      const [existingPatient] = await db
+        .select({ id: patient.id })
+        .from(patient)
+        .where(eq(patient.email, email));
+
+      if (existingPatient) {
+        throw ApiError.conflict(`Patient with email ${email} already exists`);
+      }
+
+      const medecin = await auth.api.getSession({
+        headers: await headers(),
+      });
+
+      if (!medecin || !medecin.user) {
+        throw ApiError.unauthorized(
+          "Vous devez être connecté pour créer un patient"
+        );
+      }
+
       await db.transaction(async (tx) => {
         await tx.insert(patient).values({
           id: patientId,
@@ -115,6 +246,8 @@ export class PatientService {
           email,
           phone,
           address,
+          createdAt: now,
+          updatedAt: now,
         });
 
         await tx.insert(infoMedical).values({
@@ -129,10 +262,25 @@ export class PatientService {
           previousProteinurie: medicalInfo.proteinurie,
           lastvisite: now,
           nextvisite: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        await tx.insert(historique).values({
+          id: uuidv4(),
+          patientId,
+          date: now,
+          title: "Enregistrement initial",
+          description: `Patient enregistré avec stade MRC ${medicalInfo.stage}, DFG ${medicalInfo.dfg} ml/min, protéinurie ${medicalInfo.proteinurie} g/24h.`,
+          type: "consultation",
+          medecin: medecin?.user.id,
+          createdAt: now,
+          updatedAt: now,
         });
       });
 
       await deleteCacheByPattern("patients:list:*");
+      await deleteCacheByPattern("dashboard:stats");
 
       return this.getPatientById(patientId);
     } catch (error) {
@@ -147,34 +295,29 @@ export class PatientService {
   }
 
   /**
-   * Update a patient
+   * Update a patient and their medical information
    */
   static async updatePatient(id: string, data: UpdatePatientInput) {
     const now = new Date();
 
     try {
-      // Check if patient exists
       const existingPatient = await this.getPatientById(id);
 
-      // Use a transaction to update both patient and medical info
       await db.transaction(async (tx) => {
-        // Update patient if there are patient fields to update
-        const patientFields = {
-          firstname: data.firstname,
-          lastname: data.lastname,
-          birthdate: data.birthdate,
-          sex: data.sex,
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          updatedAt: now,
-        };
+        const patientFields: any = {};
 
-        const hasPatientUpdates = Object.values(patientFields).some(
-          (value) => value !== undefined
-        );
+        if (data.firstname !== undefined)
+          patientFields.firstname = data.firstname;
+        if (data.lastname !== undefined) patientFields.lastname = data.lastname;
+        if (data.birthdate !== undefined)
+          patientFields.birthdate = data.birthdate;
+        if (data.sex !== undefined) patientFields.sex = data.sex;
+        if (data.email !== undefined) patientFields.email = data.email;
+        if (data.phone !== undefined) patientFields.phone = data.phone;
+        if (data.address !== undefined) patientFields.address = data.address;
 
-        if (hasPatientUpdates) {
+        if (Object.keys(patientFields).length > 0) {
+          patientFields.updatedAt = now;
           await tx.update(patient).set(patientFields).where(eq(patient.id, id));
         }
 
@@ -204,12 +347,49 @@ export class PatientService {
             .update(infoMedical)
             .set(medicalFields)
             .where(eq(infoMedical.patientId, id));
+
+          // Add medical record entry for significant changes
+          if (
+            dfg !== undefined ||
+            proteinurie !== undefined ||
+            status !== undefined
+          ) {
+            let description = "Mise à jour des informations médicales: ";
+
+            if (dfg !== undefined) {
+              description += `DFG ${existingPatient.medicalInfo.dfg} → ${dfg} ml/min. `;
+            }
+
+            if (proteinurie !== undefined) {
+              description += `Protéinurie ${existingPatient.medicalInfo.proteinurie} → ${proteinurie} g/24h. `;
+            }
+
+            if (
+              status !== undefined &&
+              status !== existingPatient.medicalInfo.status
+            ) {
+              description += `Statut ${existingPatient.medicalInfo.status} → ${status}. `;
+            }
+
+            await tx.insert(historique).values({
+              id: uuidv4(),
+              patientId: id,
+              date: now,
+              title: "Mise à jour des paramètres médicaux",
+              description,
+              type: "consultation",
+              medecin: medecin || existingPatient.medicalInfo.medecin,
+              createdAt: now,
+              updatedAt: now,
+            });
+          }
         }
       });
 
       // Invalidate cache
       await deleteCache(`patients:${id}`);
       await deleteCacheByPattern("patients:list:*");
+      await deleteCacheByPattern("dashboard:stats");
 
       // Get the updated patient
       return this.getPatientById(id);
@@ -225,7 +405,7 @@ export class PatientService {
   }
 
   /**
-   * Delete a patient
+   * Delete a patient and all related data
    */
   static async deletePatient(id: string) {
     try {
@@ -238,8 +418,9 @@ export class PatientService {
       // Invalidate cache
       await deleteCache(`patients:${id}`);
       await deleteCacheByPattern("patients:list:*");
+      await deleteCacheByPattern("dashboard:stats");
 
-      return { success: true };
+      return { success: true, message: "Patient deleted successfully" };
     } catch (error) {
       console.error("Error deleting patient:", error);
 
@@ -248,6 +429,152 @@ export class PatientService {
       }
 
       throw ApiError.internalServer("Failed to delete patient");
+    }
+  }
+
+  /**
+   * Search patients by name, email, or phone
+   */
+  static async searchPatients(query: string, limit = 10) {
+    try {
+      if (!query || query.length < 2) {
+        return [];
+      }
+
+      const searchTerm = `%${query}%`;
+
+      const results = await db
+        .select({
+          id: patient.id,
+          firstname: patient.firstname,
+          lastname: patient.lastname,
+          email: patient.email,
+          phone: patient.phone,
+          medicalInfo: {
+            stade: infoMedical.stade,
+            status: infoMedical.status,
+          },
+        })
+        .from(patient)
+        .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .where(
+          or(
+            like(patient.firstname, searchTerm),
+            like(patient.lastname, searchTerm),
+            like(patient.email, searchTerm),
+            like(patient.phone, searchTerm)
+          )
+        )
+        .limit(limit);
+
+      return results;
+    } catch (error) {
+      console.error("Error searching patients:", error);
+      throw ApiError.internalServer("Failed to search patients");
+    }
+  }
+
+  /**
+   * Get patients by stage
+   */
+  static async getPatientsByStage(stages: number[]) {
+    try {
+      const results = await db
+        .select({
+          id: patient.id,
+          firstname: patient.firstname,
+          lastname: patient.lastname,
+          medicalInfo: {
+            stade: infoMedical.stade,
+            status: infoMedical.status,
+            dfg: infoMedical.dfg,
+            proteinurie: infoMedical.proteinurie,
+            lastvisite: infoMedical.lastvisite,
+            nextvisite: infoMedical.nextvisite,
+          },
+        })
+        .from(patient)
+        .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .where(inArray(infoMedical.stade, stages))
+        .orderBy(asc(patient.lastname), asc(patient.firstname));
+
+      return results;
+    } catch (error) {
+      console.error("Error getting patients by stage:", error);
+      throw ApiError.internalServer("Failed to get patients by stage");
+    }
+  }
+
+  /**
+   * Get patients with upcoming appointments
+   */
+  static async getPatientsWithUpcomingAppointments(days = 7) {
+    try {
+      const today = new Date();
+      const endDate = new Date();
+      endDate.setDate(today.getDate() + days);
+
+      const results = await db
+        .select({
+          id: patient.id,
+          firstname: patient.firstname,
+          lastname: patient.lastname,
+          appointmentDate: infoMedical.nextvisite,
+          medicalInfo: {
+            stade: infoMedical.stade,
+            status: infoMedical.status,
+          },
+        })
+        .from(patient)
+        .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .where(
+          and(
+            sql`${infoMedical.nextvisite} >= CURRENT_DATE`,
+            sql`${infoMedical.nextvisite} <= ${endDate}`
+          )
+        )
+        .orderBy(asc(infoMedical.nextvisite));
+
+      return results;
+    } catch (error) {
+      console.error(
+        "Error getting patients with upcoming appointments:",
+        error
+      );
+      throw ApiError.internalServer(
+        "Failed to get patients with upcoming appointments"
+      );
+    }
+  }
+
+  /**
+   * Get critical patients (status = critical)
+   */
+  static async getCriticalPatients() {
+    try {
+      const results = await db
+        .select({
+          id: patient.id,
+          firstname: patient.firstname,
+          lastname: patient.lastname,
+          medicalInfo: {
+            stade: infoMedical.stade,
+            status: infoMedical.status,
+            dfg: infoMedical.dfg,
+            proteinurie: infoMedical.proteinurie,
+            lastvisite: infoMedical.lastvisite,
+            nextvisite: infoMedical.nextvisite,
+          },
+        })
+        .from(patient)
+        .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .where(eq(infoMedical.status, "critical"))
+        .orderBy(asc(infoMedical.stade), asc(patient.lastname));
+
+      return results;
+    } catch (error) {
+      console.error("Error getting critical patients:", error);
+      throw ApiError.internalServer("Failed to get critical patients");
     }
   }
 
@@ -325,139 +652,85 @@ export class PatientService {
   }
 
   /**
-   * Get patient traitements
+   * get patient history
+   * @param id
+   * @returns
    */
-  static async getPatientTraitements(patientId: string) {
-    const cacheKey = `patients:${patientId}:traitements`;
-
-    return withCache(
-      cacheKey,
-      async () => {
-        const traitements = await db
-          .select({
-            id: patientTraitement.id,
-            patientId: patientTraitement.patientId,
-            medicament: patientTraitement.medicament,
-            category: patientTraitement.category,
-            posologie: patientTraitement.posologie,
-            frequence: patientTraitement.frequence,
-            date: patientTraitement.date,
-            status: patientTraitement.status,
-            createdAt: patientTraitement.createdAt,
-            updatedAt: patientTraitement.updatedAt,
-          })
-          .from(patientTraitement)
-          .where(eq(patientTraitement.patientId, patientId));
-
-        return traitements;
-      },
-      300
-    );
-  }
-
-  /**
-   * Create a new patient traitement
-   */
-  static async createPatientTraitement(
-    medecin: string,
-    patientId: string,
-    data: z.infer<typeof TraitementSchema>
-  ) {
-    const { medicament, category, posologie, frequence } = data;
-    const now = new Date();
-
+  static async getPatientHistory(id: string) {
     try {
-      await db.insert(patientTraitement).values({
-        patientId,
-        medicament,
-        category,
-        posologie,
-        frequence,
-        date: now,
-        medecin,
-      });
-
-      // Invalidate cache
-      await deleteCache(`patients:${patientId}:traitements`);
-
-      return this.getPatientTraitements(patientId);
-    } catch (error) {
-      console.error("Error creating patient traitement:", error);
-
-      if (error instanceof ApiError) {
-        throw error;
-      }
-
-      throw ApiError.internalServer("Failed to create patient traitement");
-    }
-  }
-
-  /**
-   * Update a patient traitement
-   */
-  static async updatePatientTraitement(
-    id: string,
-    data: UpdatePatientTraitementInput
-  ) {
-    const now = new Date();
-
-    try {
-      // Check if patient traitement exists
-      const existingPatientTraitement = await this.getPatientTraitementById(id);
-
-      // Update patient traitement
-      await db
-        .update(patientTraitement)
-        .set({
-          medicament: data.medicament,
-          category: data.category,
-          posologie: data.posologie,
-          frequence: data.frequence,
-          date: data.date,
-          updatedAt: now,
+      const results = await db
+        .select({
+          id: historique.id,
+          date: historique.date,
+          title: historique.title,
+          description: historique.description,
+          type: historique.type,
+          medecin: user.name,
+          createdAt: historique.createdAt,
+          updatedAt: historique.updatedAt,
         })
-        .where(eq(patientTraitement.id, id));
+        .from(historique)
+        .where(eq(historique.patientId, id))
+        .leftJoin(user, eq(historique.medecin, user.id))
+        .orderBy(desc(historique.date));
 
-      // Invalidate cache
-      await deleteCache(
-        `patients:${existingPatientTraitement.patientId}:traitements`
-      );
-
-      return this.getPatientTraitements(existingPatientTraitement.patientId);
+      return results;
     } catch (error) {
-      console.error("Error updating patient traitement:", error);
-
-      if (error instanceof ApiError) {
-        throw error;
-      }
-
-      throw ApiError.internalServer("Failed to update patient traitement");
+      console.error("Error getting patient history:", error);
+      throw ApiError.internalServer("Failed to get patient history");
     }
   }
 
   /**
-   * Delete a patient traitement
+   * get patient treatments
+   * @param id
+   * @returns
    */
-  static async deletePatientTraitement(id: string) {
+  static async createPatientTraitement(data: any) {
     try {
-      // Check if patient traitement exists
-      await this.getPatientTraitementById(id);
-
-      // Delete patient traitement
-      await db.delete(patientTraitement).where(eq(patientTraitement.id, id));
-
-      // Invalidate cache
-      await deleteCache(`patients:${patientTraitement.patientId}:traitements`);
-
-      return { success: true };
+      const result = await db.insert(patientTraitement).values({
+        id: uuidv4(),
+        ...data,
+      });
+      return result;
     } catch (error) {
-      console.error("Error deleting patient traitement:", error);
+      console.error("Error creating patient treatment:", error);
+      throw ApiError.internalServer("Failed to create patient treatment");
+    }
+  }
 
-      if (error instanceof ApiError) {
-        throw error;
-      }
+  /**
+   * get patient treatments
+   * @param id
+   * @returns
+   */
+  static async getPatientTraitements(id: string) {
+    try {
+      const results = await db
+        .select({
+          id: patientTraitement.id,
+          medicament: patientTraitement.medicament,
+          category: patientTraitement.category,
+          posologie: patientTraitement.posologie,
+          frequence: patientTraitement.frequence,
+          date: patientTraitement.date,
+          endDate: patientTraitement.endDate,
+          status: patientTraitement.status,
+          medecin: user.name,
+          notes: patientTraitement.notes,
+          interactions: patientTraitement.interactions,
+          createdAt: patientTraitement.createdAt,
+          updatedAt: patientTraitement.updatedAt,
+        })
+        .from(patientTraitement)
+        .where(eq(patientTraitement.patientId, id))
+        .leftJoin(user, eq(patientTraitement.medecin, user.id))
+        .orderBy(asc(patientTraitement.date));
 
-      throw ApiError.internalServer("Failed to delete patient traitement");
+      return results;
+    } catch (error) {
+      console.error("Error getting patient treatments:", error);
+      throw ApiError.internalServer("Failed to get patient treatments");
     }
   }
 }

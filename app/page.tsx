@@ -11,10 +11,12 @@ export default function Home() {
     <div>
       {isConnected ? (
         <div>
-          <Button>go the dashboard</Button>
+          <Link href="/dashboard">
+            <Button>go the dashboard</Button>
+          </Link>
         </div>
       ) : (
-        <LoginPage/>
+        <LoginPage />
       )}
     </div>
   );

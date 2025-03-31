@@ -30,12 +30,14 @@ export function StageDistribution() {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    let startAngle = -Math.PI / 2; // Start from the top
+    let startAngle = -Math.PI / 2;
 
     const colors = ["#646cff", "#7479ff", "#8481ff", "#9489ff", "#a491ff"];
 
+    const radius = Math.min(canvas.width, canvas.height) / 2.5;
+
     for (let i = 0; i < stages.length; i++) {
-      const sliceAngle = (stageCounts[i] / totalPatients) * 2 * Math.PI;
+      const sliceAngle = (stageCounts[i] / stats.totalPatients) * 2 * Math.PI;
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
       ctx.lineTo(centerX, centerY);

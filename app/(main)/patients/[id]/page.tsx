@@ -1,4 +1,5 @@
-import DetailsPatient from "@/components/patients/details";
+import { DeletePatientDialog } from "@/components/patients/delete-patient-dialog";
+import { PatientDetails } from "@/components/patients/patient-details";
 import { PatientLabs } from "@/components/patients/patient-labs";
 import { PatientMedications } from "@/components/patients/patient-medications";
 import { PatientTimeline } from "@/components/patients/patient-timeline";
@@ -21,7 +22,6 @@ import {
   Pill,
 } from "lucide-react";
 import Link from "next/link";
-
 import { use } from "react";
 
 type Params = Promise<{ id: string }>;
@@ -38,18 +38,25 @@ export default function PatientDetailsPage(props: { params: Params }) {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold tracking-tight">Dossier patient</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
           <Link href={`/patients/${params.id}/modifier`}>
-            <Button>
+            <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
               Modifier
+            </Button>
+          </Link>
+          <DeletePatientDialog patientId={params.id} />
+          <Link href={`/patients/${params.id}/analyse`}>
+            <Button variant="outline">
+              <Edit className="mr-2 h-4 w-4" />
+              Consulter les analyses
             </Button>
           </Link>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-7">
-        <DetailsPatient id={params.id} />
+        <PatientDetails id={params.id} />
         <div className="md:col-span-5">
           <Tabs defaultValue="timeline" className="w-full">
             <TabsList className="grid w-full grid-cols-4">

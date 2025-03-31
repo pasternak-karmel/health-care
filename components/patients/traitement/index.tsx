@@ -24,12 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePatientTraitement } from "@/hooks/patient/use-traitement";
+import { useCreateTreatment } from "@/hooks/patient/use-treatments";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { TraitementFormValues, TraitementSchema } from "./type";
 
 interface AddTraitementProps {
@@ -38,30 +37,25 @@ interface AddTraitementProps {
 
 export function AddTraitement({ patientId }: AddTraitementProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { createPatientTraitement } = usePatientTraitement(patientId);
+  const { mutate: createTreatment, isPending } = useCreateTreatment(patientId);
 
   const form = useForm<TraitementFormValues>({
     resolver: zodResolver(TraitementSchema),
     defaultValues: {
       medicament: "",
       posologie: "",
+      startDate: new Date().toISOString().split("T")[0],
     },
   });
 
   async function onSubmit(data: TraitementFormValues) {
-    setIsSubmitting(true);
-
     try {
-      createPatientTraitement(data);
+      createTreatment(data);
       form.reset();
       setOpen(false);
     } catch (error) {
-      toast.error("Erreur lors de l'ajout du traitement");
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
+      console.log(error);
     }
   }
 
@@ -167,8 +161,8 @@ export function AddTraitement({ patientId }: AddTraitementProps) {
               )}
             />
 
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </form>
         </Form>

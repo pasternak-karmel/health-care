@@ -1,9 +1,9 @@
 "use client";
 
-import { AddMedicalRecord } from "@/components/add-medical-record";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { usePatientHistory } from "@/hooks/patient/use-historique";
 import {
   AlertTriangle,
   Calendar,
@@ -13,116 +13,47 @@ import {
   Pill,
   Stethoscope,
 } from "lucide-react";
-import { useState } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 interface PatientTimelineProps {
   patientId: string;
 }
 
 export function PatientTimeline({ patientId }: PatientTimelineProps) {
-  const [events, setEvents] = useState([
-    {
-      id: "1",
-      date: "05/04/2023",
-      type: "consultation",
-      title: "Consultation de suivi",
-      description:
-        "Examen clinique normal. Pression artérielle élevée (160/95 mmHg). Ajustement du traitement antihypertenseur.",
-      doctor: "Dr. Martin Lefèvre",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "ML",
-    },
-    {
-      id: "2",
-      date: "05/04/2023",
-      type: "lab",
-      title: "Analyses de sang",
-      description:
-        "Créatinine: 180 μmol/L, DFG: 25 ml/min, Potassium: 5.2 mmol/L, Hémoglobine: 10.5 g/dL",
-      doctor: "Dr. Martin Lefèvre",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "ML",
-    },
-    {
-      id: "3",
-      date: "05/04/2023",
-      type: "medication",
-      title: "Modification du traitement",
-      description:
-        "Augmentation de la dose de furosémide à 40mg/jour. Ajout d'amlodipine 5mg/jour.",
-      doctor: "Dr. Martin Lefèvre",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "ML",
-    },
-    {
-      id: "4",
-      date: "15/03/2023",
-      type: "alert",
-      title: "Alerte: Potassium élevé",
-      description:
-        "Potassium à 5.8 mmol/L. Patient contacté pour ajustement du traitement et contrôle dans 1 semaine.",
-      doctor: "Dr. Sophie Moreau",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "SM",
-    },
-    {
-      id: "5",
-      date: "01/03/2023",
-      type: "consultation",
-      title: "Consultation de néphrologie",
-      description:
-        "Évaluation de la fonction rénale. Discussion sur la préparation à la dialyse si détérioration continue.",
-      doctor: "Dr. Martin Lefèvre",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "ML",
-    },
-    {
-      id: "6",
-      date: "01/03/2023",
-      type: "document",
-      title: "Compte-rendu d'échographie rénale",
-      description:
-        "Reins de taille réduite, hyperéchogènes. Pas d'obstacle sur les voies urinaires.",
-      doctor: "Dr. Julie Dupont",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "JD",
-    },
-  ]);
+  const { patientHistory, isLoadingPatientHistory, errorPatientHistory } =
+    usePatientHistory(patientId);
 
-  const handleRecordAdded = () => {
-    // In a real app, you would fetch the updated timeline
-    // For now, we'll simulate adding a new record at the top
-    const newEvent = {
-      id: `new-${Date.now()}`,
-      date: new Date().toLocaleDateString("fr-FR"),
-      type: "consultation",
-      title: "Nouvelle consultation",
-      description: "Consultation de suivi ajoutée via le formulaire.",
-      doctor: "Dr. Martin Lefèvre",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "ML",
-    };
+  if (errorPatientHistory) {
+    return (
+      <div className="flex items-center justify-center h-[300px] border rounded-md">
+        <p className="text-destructive">
+          Erreur lors du chargement de l&apos;historique:{" "}
+          {errorPatientHistory.message}
+        </p>
+      </div>
+    );
+  }
 
-    setEvents([newEvent, ...events]);
-  };
+  if (isLoadingPatientHistory) {
+    return <Skeleton className="h-[300px] w-full" />;
+  }
+
+  if (!patientHistory || patientHistory.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[300px] border rounded-md">
+        <p className="text-muted-foreground">Aucun historique disponible</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-end">
-        <AddMedicalRecord
-          patientId={patientId}
-          onRecordAdded={handleRecordAdded}
-        />
-      </div>
-
-      {events.map((event, index) => (
+      {patientHistory.map((event, index) => (
         <div key={event.id} className="relative pl-8 pb-8">
-          {/* Ligne verticale */}
-          {index < events.length - 1 && (
+          {index < patientHistory.length - 1 && (
             <div className="absolute left-4 top-8 bottom-0 w-px bg-border" />
           )}
 
-          {/* Icône d'événement */}
           <div className="absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-full border bg-background">
             {event.type === "consultation" && (
               <Stethoscope className="h-4 w-4 text-blue-500" />
@@ -194,10 +125,9 @@ export function PatientTimeline({ patientId }: PatientTimelineProps) {
 
             <div className="flex items-center gap-2 text-sm">
               <Avatar className="h-6 w-6">
-                <AvatarImage src={event.avatar} alt={event.doctor} />
-                <AvatarFallback>{event.initials}</AvatarFallback>
+                <AvatarFallback>{event.medecin[0]}</AvatarFallback>
               </Avatar>
-              <span>{event.doctor}</span>
+              <span>Dr. {event.medecin}</span>
             </div>
 
             {event.type === "document" && (

@@ -56,6 +56,7 @@ export const TraitementSchema = z.object({
   category: categoryTraitementEnum,
   posologie: z.string().min(2, { message: "La posologie est requise" }),
   frequence: frequenceTraitementEnum,
+  startDate: z.string().min(1, { message: "La date de début est requise" }),
 });
 
 export type TraitementFormValues = z.infer<typeof TraitementSchema>;

@@ -1,25 +1,21 @@
 "use client";
 
-import { DataTablePatients } from "@/components/patients/table/data-table-patient";
+import { PatientList } from "@/components/patients/patient-list";
+import { PatientSearch } from "@/components/patients/patient-search";
 import { Button } from "@/components/ui/button";
-import { usePatient } from "@/hooks/use-patient";
+import type { PatientQueryParams } from "@/hooks/patient/use-patient";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function PatientPage() {
-  const { patients, isLoadingPatients, errorPatients } = usePatient();
+  const [queryParams, setQueryParams] = useState<PatientQueryParams>({
+    page: 1,
+    limit: 10,
+    sortBy: "name",
+    sortOrder: "asc",
+  });
 
-  if (errorPatients) {
-    // show skeleton loader after
-    return <p className="text-red-500">Erreur: {errorPatients.message}</p>;
-  }
-
-  if (isLoadingPatients) {
-    // show skeleton loader after
-    return <p>Chargement des patients...</p>;
-  }
-
-  // return <div>{JSON.stringify(patients, null, 2)}</div>;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
@@ -31,7 +27,23 @@ export default function PatientPage() {
           </Button>
         </Link>
       </div>
-      <DataTablePatients data={patients!} />
+
+      <PatientSearch
+        onSearch={(search) =>
+          setQueryParams((prev) => ({ ...prev, search, page: 1 }))
+        }
+        onFilterChange={(filters) =>
+          setQueryParams((prev) => ({ ...prev, ...filters, page: 1 }))
+        }
+      />
+
+      <PatientList
+        queryParams={queryParams}
+        onPageChange={(page) => setQueryParams((prev) => ({ ...prev, page }))}
+        onSortChange={(sortBy, sortOrder) =>
+          setQueryParams((prev) => ({ ...prev, sortBy, sortOrder }))
+        }
+      />
     </div>
   );
 }

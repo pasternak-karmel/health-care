@@ -41,3 +41,6 @@ export const apiPrefix: string = "/api";
  * @type {string}
  */
 export const DEFAULT_LOGIN_REDIRECT: string = "/dashboard";
+
+
+// **AI-Powered Diagnostics**: Implement AI algorithms to assist in diagnosing conditions based on symptoms and test results.
