@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import LoginPage from "@/app/login/page";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -58,62 +59,6 @@ export default function SignInForm() {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-4">
-          <>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="john.doe@example.com"
-                      type="email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="******"
-                      type="password"
-                    />
-                  </FormControl>
-                  <Button
-                    size="sm"
-                    variant="link"
-                    asChild
-                    className="px-0 font-normal"
-                  >
-                    <Link href="/auth/reset">Forgot password?</Link>
-                  </Button>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        </div>
-
-        {urlError && <p className="text-red-500">{urlError}</p>}
-        <Button disabled={isPending} type="submit" className="w-full">
-          {isPending ? "Signing in..." : "Sign in"}
-        </Button>
-      </form>
-    </Form>
+    <LoginPage/>
   );
 }

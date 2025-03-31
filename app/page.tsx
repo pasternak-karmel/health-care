@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
+import SignInPage from "./(auth)/auth/sign-in/page";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -13,10 +14,7 @@ export default function Home() {
           <Button>go the dashboard</Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          <Link href={"/auth/sign-in"}>Sign In</Link>
-          <Link href={"/auth/sign-up"}>Sign Up</Link>
-        </div>
+          <SignInPage />
       )}
     </div>
   );

@@ -1,5 +1,7 @@
 import { GalleryVerticalEnd } from "lucide-react"
 
+import Image from 'next/image'
+
 import { LoginForm } from "@/components/login-form"
 
 export default function LoginPage() {
@@ -11,7 +13,7 @@ export default function LoginPage() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Acme Inc.
+            Health Care
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -21,10 +23,11 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="bg-muted relative hidden lg:block">
-        <img
-          src="/placeholder.svg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+        <Image
+          src="/Maladie-renale-chronique-scaled-1.jpeg"
+          width={500}
+          height={500}
+          alt="Picture of the author"
         />
       </div>
     </div>
