@@ -12,6 +12,7 @@ interface WorkflowTasksProps {
 }
 
 export function WorkflowTasks({ workflowId }: WorkflowTasksProps) {
+  console.log(workflowId);
   const tasks = [
     {
       id: "1",

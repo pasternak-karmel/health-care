@@ -197,6 +197,7 @@ export class VitalSignsService {
       const existingRecord = await this.getVitalSignById(id);
 
       // Prepare update fields
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateFields: any = {
         updatedAt: now,
       };
@@ -296,7 +297,9 @@ export class VitalSignsService {
         // Extract the specific vital sign values from each record
         const trends = records
           .map((record) => {
-            const parsedMeasurements = JSON.parse(record.measurements);
+            const parsedMeasurements = JSON.parse(
+              record.measurements as unknown as string
+            );
             const measurement = parsedMeasurements.find(
               (m: VitalSignData) => m.type.toLowerCase() === type.toLowerCase()
             );
@@ -346,7 +349,9 @@ export class VitalSignsService {
         const types = new Set<string>();
 
         records.forEach((record) => {
-          const parsedMeasurements = JSON.parse(record.measurements);
+          const parsedMeasurements = JSON.parse(
+            record.measurements as unknown as string
+          );
           parsedMeasurements.forEach((m: VitalSignData) => {
             types.add(m.type);
           });

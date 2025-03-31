@@ -1,9 +1,8 @@
 import { db } from "@/db";
 import { redis } from "@/lib/redis";
 import { sql } from "drizzle-orm";
-import type { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const health = {
     uptime: process.uptime(),
     timestamp: Date.now(),

@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
 import { toast } from "sonner";
 
-interface MedicalRecord {
+export interface MedicalRecord {
   id: string;
   patientId: string;
   date: string;

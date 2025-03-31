@@ -175,6 +175,7 @@ export class MedicalRecordService {
       const existingRecord = await this.getMedicalRecordById(id);
 
       // Prepare update fields
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateFields: any = {
         updatedAt: now,
       };
