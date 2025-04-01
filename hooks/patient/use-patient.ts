@@ -208,7 +208,9 @@ export function useCreatePatient(options: UsePatientOptions = {}) {
     mutationFn: createPatient,
     onSuccess: (data) => {
       toast.success("Patient créé avec succès");
-      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({
+        queryKey: ["patients", "dashboardStats"],
+      });
 
       if (options.onSuccess) {
         options.onSuccess(data);

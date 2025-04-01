@@ -1,5 +1,5 @@
-import * as schema from "@/db/auth-schema";
 import { db } from "@/db";
+import * as schema from "@/db/auth-schema";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";

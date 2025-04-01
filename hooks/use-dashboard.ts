@@ -36,7 +36,6 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   }
 }
 
-
 export function useDashboard() {
   return useQuery({
     queryKey: ["dashboardStats"],

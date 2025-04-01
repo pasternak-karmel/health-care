@@ -25,10 +25,11 @@ export default function SignInPage() {
       </div>
       <div className="bg-muted relative hidden lg:block">
         <Image
-          src="/images/Maladie-renale-chronique-scaled-1.jpeg"
-          width={500}
-          height={500}
-          alt="Picture of the author"
+          src="/welcome.jpeg"
+          width={1000}
+          height={1000}
+          alt="Welcome picture"
+          className="absolute inset-0 z-0 mix-blend-multiply h-full w-full"
         />
       </div>
     </div>
