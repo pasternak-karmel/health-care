@@ -2,7 +2,6 @@ import { handleApiError } from "@/lib/api-error";
 import { getAuthenticatedUser } from "@/lib/auth-utils";
 import { rateLimit } from "@/lib/rate-limit";
 import { AlertService } from "@/services/alert-service";
-import { PatientService } from "@/services/patient-service";
 import type { NextRequest } from "next/server";
 
 type Params = Promise<{ id: string }>;
