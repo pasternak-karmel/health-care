@@ -630,6 +630,15 @@ export class PatientService {
           .from(infoMedical)
           .where(eq(infoMedical.status, "critical"));
 
+        const [{ count: activeAlerts }] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(historique)
+          .where(and(
+            eq(historique.type, "alert"),
+            eq(historique.isResolved, false),
+            eq(historique.alertType, "critical")
+          ));
+
         // Get upcoming appointments (next 7 days)
         const nextWeek = new Date();
         nextWeek.setDate(nextWeek.getDate() + 7);
@@ -686,14 +695,27 @@ export class PatientService {
           lastVisit: formatDate(new Date(patient.lastVisit)),
         }));
 
-        const alerts = await db
+        const alertData = await db
           .select({
-
+            id: historique.id,
+            patient: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
+            patientId: historique.patientId,
+            type: historique.alertType,
+            message: historique.description,
+            date: historique.date,
+            resolved: historique.isResolved,
           })
-          .from(patient)
-          .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
-          .orderBy(desc(infoMedical.lastvisite))
+          .from(historique)
+          .innerJoin(patient, eq(patient.id, historique.patientId))
+          .where(eq(historique.type, "alert"))
+          .orderBy(desc(historique.date))
           .limit(5);
+
+          const alerts = alertData.map((alert, index) => ({
+            ...alert,
+            // id: index + 1,
+            date: formatDate(new Date(alert.date)),
+          }));
 
         return {
           totalPatients,
@@ -702,6 +724,7 @@ export class PatientService {
           criticalPatients,
           upcomingAppointments,
           recentPatients,
+          alerts,
         };
       },
       300

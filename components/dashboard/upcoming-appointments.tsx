@@ -3,78 +3,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Appointment } from "@/types/types";
 import { Calendar, Clock, Video } from "lucide-react";
 import Link from "next/link";
-
-type Appointment = {
-  id: string;
-  patient: string;
-  patientId: string;
-  date: string;
-  time: string;
-  type: string;
-  virtual: boolean;
-  avatar: string;
-  initials: string;
-};
-
-const appointments = [
-  {
-    id: "1",
-    patient: "Martin Dupont",
-    patientId: "1",
-    date: "Aujourd'hui",
-    time: "14:30",
-    type: "Consultation",
-    virtual: false,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "MD",
-  },
-  {
-    id: "2",
-    patient: "Sophie Laurent",
-    patientId: "2",
-    date: "Aujourd'hui",
-    time: "16:00",
-    type: "Suivi",
-    virtual: true,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "SL",
-  },
-  {
-    id: "3",
-    patient: "Jean Petit",
-    patientId: "3",
-    date: "Demain",
-    time: "09:15",
-    type: "Examen",
-    virtual: false,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "JP",
-  },
-  {
-    id: "4",
-    patient: "Marie Leroy",
-    patientId: "4",
-    date: "Demain",
-    time: "11:30",
-    type: "Consultation",
-    virtual: false,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "ML",
-  },
-  {
-    id: "5",
-    patient: "Philippe Moreau",
-    patientId: "5",
-    date: "Après-demain",
-    time: "10:00",
-    type: "Suivi",
-    virtual: true,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "PM",
-  },
-];
 
 export function UpcomingAppointments({ appointments }: { appointments: Appointment[] }) {
   return (

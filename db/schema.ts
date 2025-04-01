@@ -57,6 +57,7 @@ export const historique = pgTable("historique", {
   date: timestamp("date", { withTimezone: true }).notNull(),
   isResolved: boolean("isResolved").$default(() => false),
   description: text("description").notNull(),
+  alertType: text("alertType"),
   type: text("type").notNull(),
   medecin: text("medecin")
     .notNull()

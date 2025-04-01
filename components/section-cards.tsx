@@ -48,7 +48,7 @@ export function SectionCards({ stats, isLoading, error }: SectionCardsProps) {
             <Skeleton className="h-8 w-16" />
           ) : (
             <div className="text-2xl font-bold">
-              {stats?.criticalPatients ?? 0}
+              {stats?.activeAlerts ?? 0}
             </div>
           )}
           <p className="text-xs text-muted-foreground">
