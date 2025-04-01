@@ -656,12 +656,17 @@ export class PatientService {
           .orderBy(asc(infoMedical.nextvisite))
           .limit(5);
 
-          const upcomingAppointments = upcomingAppointmentsQuery.map((appointment, index) => ({
+        const upcomingAppointments = upcomingAppointmentsQuery.map(
+          (appointment, index) => ({
             ...appointment,
             id: index + 1,
             date: formatDate(new Date(appointment.date), false),
-            time: new Date(appointment.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          }));
+            time: new Date(appointment.date).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          })
+        );
 
         //Get Recent Patient data
         const recentPatientsQuery = await db
@@ -686,14 +691,14 @@ export class PatientService {
           lastVisit: formatDate(new Date(patient.lastVisit)),
         }));
 
-        const alerts = await db
-          .select({
+        // const alerts = await db
+        //   .select({
 
-          })
-          .from(patient)
-          .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
-          .orderBy(desc(infoMedical.lastvisite))
-          .limit(5);
+        //   })
+        //   .from(patient)
+        //   .innerJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        //   .orderBy(desc(infoMedical.lastvisite))
+        //   .limit(5);
 
         return {
           totalPatients,
@@ -792,7 +797,8 @@ export class PatientService {
   }
 }
 
-function formatDate(lastvisit: Date, addSuffix=true): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function formatDate(lastvisit: Date, addSuffix = true): string {
   if (isToday(lastvisit)) {
     return "Aujourd'hui";
   } else if (isYesterday(lastvisit)) {

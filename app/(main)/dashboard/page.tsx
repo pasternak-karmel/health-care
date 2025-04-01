@@ -48,7 +48,8 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle>Patients récemment consultés</CardTitle>
                 <CardDescription>
-                  Les {stats?.recentPatients.length || 0} dernier(s) patients consultés
+                  Les {stats?.recentPatients.length || 0} dernier(s) patients
+                  consultés
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -90,7 +91,9 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UpcomingAppointments appointments={stats?.upcomingAppointments || []} />
+              <UpcomingAppointments
+                appointments={stats?.upcomingAppointments || []}
+              />
             </CardContent>
           </Card>
         </TabsContent>

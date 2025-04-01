@@ -162,8 +162,8 @@ export class MedicalHistoryService {
       await db.insert(historique).values({
         id,
         patientId,
-        date: new Date(date),
         title,
+        date: new Date(date),
         description,
         type,
         medecin,

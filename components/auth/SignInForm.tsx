@@ -132,7 +132,7 @@ export default function SignInForm() {
                 fill="currentColor"
               />
             </svg>
-            Login with GitHub
+            Login with Google
           </Button>
 
           {/* Sign up link */}
