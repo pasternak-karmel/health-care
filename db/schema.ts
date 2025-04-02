@@ -147,3 +147,25 @@ export const notifications = pgTable("notifications", {
     .notNull()
     .defaultNow(),
 });
+
+export const workflow = pgTable("workflow", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const workflowPatient = pgTable("workflow_patient", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  workflowId: uuid("workflow_id")
+    .notNull()
+    .references(() => workflow.id, { onDelete: "cascade" }),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+});

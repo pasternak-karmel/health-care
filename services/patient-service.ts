@@ -10,13 +10,12 @@ import {
 import { ApiError } from "@/lib/api-error";
 import { auth } from "@/lib/auth";
 import { deleteCache, deleteCacheByPattern, withCache } from "@/lib/cache";
+import { formatDate } from "@/lib/utils";
 import type {
   CreatePatientInput,
   PatientQueryParams,
   UpdatePatientInput,
 } from "@/schemas/patient";
-import { formatDistanceToNow, isToday, isYesterday } from "date-fns";
-import { fr } from "date-fns/locale";
 import { and, asc, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
@@ -817,16 +816,5 @@ export class PatientService {
       console.error("Error getting patient treatments:", error);
       throw ApiError.internalServer("Failed to get patient treatments");
     }
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function formatDate(lastvisit: Date, addSuffix = true): string {
-  if (isToday(lastvisit)) {
-    return "Aujourd'hui";
-  } else if (isYesterday(lastvisit)) {
-    return "Hier";
-  } else {
-    return formatDistanceToNow(lastvisit, { locale: fr, addSuffix: true });
   }
 }
