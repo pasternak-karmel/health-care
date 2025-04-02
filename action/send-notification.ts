@@ -1,8 +1,8 @@
-'use server'
+"use server";
 
-import { NotificationTemplate } from '@/components/emails/notification-template';
-import { Resend } from 'resend';
-import { z } from 'zod';
+import { NotificationTemplate } from "@/components/emails/notification-template";
+import { Resend } from "resend";
+import { z } from "zod";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -18,7 +18,7 @@ const NotificationSchema = z.object({
   actionText: z.string().optional(),
   supportEmail: z.string().optional(),
   preferencesLink: z.string().optional(),
-  companyName: z.string().optional()
+  companyName: z.string().optional(),
 });
 
 type NotificationInput = z.infer<typeof NotificationSchema>;
@@ -27,7 +27,7 @@ export async function sendNotificationEmail(input: NotificationInput) {
   try {
     const notificationPayload = NotificationSchema.parse(input);
     const { data, error } = await resend.emails.send({
-      from: `${notificationPayload.appName || 'HealthCare'} <noreply@glaceandconfort.com>`,
+      from: `${notificationPayload.appName || "HealthCare"} <noreply@glaceandconfort.com>`,
       to: notificationPayload.to,
       subject: notificationPayload.subject,
       react: NotificationTemplate({
@@ -50,13 +50,16 @@ export async function sendNotificationEmail(input: NotificationInput) {
 
     return { success: true, data };
   } catch (error) {
-
-    console.error('Error sending notification email:', error);
+    console.error("Error sending notification email:", error);
 
     if (error instanceof z.ZodError) {
-      return { success: false, error: 'Invalid input data', details: error.errors };
+      return {
+        success: false,
+        error: "Invalid input data",
+        details: error.errors,
+      };
     }
 
-    return { success: false, error: 'Failed to send email notification' };
+    return { success: false, error: "Failed to send email notification" };
   }
 }

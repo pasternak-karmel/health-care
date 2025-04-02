@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -433,8 +434,8 @@ export function LabResultsDialog({
                 {createLabResult.isPending || updateLabResult.isPending
                   ? "Enregistrement..."
                   : isEditing
-                  ? "Mettre à jour"
-                  : "Ajouter"}
+                    ? "Mettre à jour"
+                    : "Ajouter"}
               </Button>
             </DialogFooter>
           </form>

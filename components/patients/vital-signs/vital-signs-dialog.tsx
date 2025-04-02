@@ -33,6 +33,7 @@ interface VitalSignsDialogProps {
   patientId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   record?: any;
 }
 
@@ -120,7 +121,7 @@ export function VitalSignsDialog({
   ];
 
   const addCommonVitalSign = (type: string, unit: string) => {
-    append({ type, value: "", unit });
+    append({ type, value: 0, unit });
   };
 
   return (
@@ -235,7 +236,7 @@ export function VitalSignsDialog({
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={() => append({ type: "", value: "", unit: "" })}
+                onClick={() => append({ type: "", value: 0, unit: "" })}
               >
                 <Plus className="mr-1 h-4 w-4" />
                 Ajouter une mesure

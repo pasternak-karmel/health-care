@@ -27,7 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -63,8 +62,8 @@ export function VitalSignsList({ patientId }: VitalSignsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [type, setType] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [page] = useState(1);
+  const [limit] = useState(10);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -211,8 +210,8 @@ export function VitalSignsList({ patientId }: VitalSignsListProps) {
                       const measurements = Array.isArray(record.measurements)
                         ? record.measurements
                         : typeof record.measurements === "string"
-                        ? JSON.parse(record.measurements)
-                        : [];
+                          ? JSON.parse(record.measurements)
+                          : [];
                       return (
                         <TableRow key={record.id}>
                           <TableCell className="font-medium">
@@ -280,13 +279,13 @@ export function VitalSignsList({ patientId }: VitalSignsListProps) {
           <div className="text-xs text-muted-foreground">
             {data?.pagination.totalItems ?? 0} enregistrements
           </div>
-          {data && data.pagination.totalPages > 1 && (
+          {/* {data && data.pagination.totalPages > 1 && (
             <Pagination
               currentPage={page}
               totalPages={data.pagination.totalPages}
               onPageChange={setPage}
             />
-          )}
+          )} */}
         </CardFooter>
       </Card>
 

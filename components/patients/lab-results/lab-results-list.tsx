@@ -29,7 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -65,7 +64,7 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [abnormalOnly, setAbnormalOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [limit] = useState(10);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -224,8 +223,8 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
                       const results = Array.isArray(record.results)
                         ? record.results
                         : typeof record.results === "string"
-                        ? JSON.parse(record.results)
-                        : [];
+                          ? JSON.parse(record.results)
+                          : [];
                       const hasAbnormal = results.some(
                         (r: any) => r.isAbnormal
                       );
@@ -313,13 +312,13 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
           <div className="text-xs text-muted-foreground">
             {data?.pagination.totalItems ?? 0} résultats d&apos;analyses
           </div>
-          {data && data.pagination.totalPages > 1 && (
+          {/* {data && data.pagination.totalPages > 1 && (
             <Pagination
               currentPage={page}
               totalPages={data.pagination.totalPages}
               onPageChange={setPage}
             />
-          )}
+          )} */}
         </CardFooter>
       </Card>
 
