@@ -67,7 +67,8 @@ export default function SignInForm() {
         <div className="flex flex-col items-center gap-3 text-center whitespace-nowrap">
           <h1 className="text-2xl font-bold">Connectez-vous à votre compte</h1>
           <p className="text-muted-foreground text-xs text-balance ">
-          Entrez votre email pour vous connecter à votre compte          </p>
+            Entrez votre email pour vous connecter à votre compte{" "}
+          </p>
         </div>
 
         {/* Form Fields */}
@@ -136,9 +137,9 @@ export default function SignInForm() {
 
           {/* Sign up link */}
           <div className="text-center text-sm">
-          Vous n'avez pas de compte ?{" "}
+            Vous n&apos;avez pas de compte ? `
             <a href="/auth/sign-up" className="underline underline-offset-4">
-              S'inscrire
+              S&apos;inscrire
             </a>
           </div>
         </div>

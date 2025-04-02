@@ -30,6 +30,27 @@ interface WorkflowListResponse {
   };
 }
 
+interface WorkflowResponse {
+    id: string;
+    title: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    patients: number;
+    alerts: {
+        total: number;
+        critical: number;
+        warning: number;
+    };
+    lastUpdated: string;
+    createdBy: string;
+    tasks: {
+        total: number;
+        completed: number;
+        pending: number;
+    };
+}
+
 export interface WorkflowQueryParams {
   page?: number;
   limit?: number;
@@ -59,6 +80,17 @@ async function fetchWorkflows(
   return response.json();
 }
 
+async function fetchWorkflow(workflowId: string): Promise<WorkflowResponse> {
+  const response = await fetch(`/api/workflow/${workflowId}`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Erreur lors de la recuperation des workflow");
+  }
+  console.log("JJ");
+  return response.json();
+}
+
 // Create a new workflow
 async function createWorkflow(workflowData: any): Promise<Workflow> {
   const response = await fetch("/api/workflow", {
@@ -75,6 +107,17 @@ async function createWorkflow(workflowData: any): Promise<Workflow> {
   }
 
   return response.json();
+}
+
+async function getPatients(workflowId: string) {
+    const response = await fetch(`/api/workflow/${workflowId}/patients`);
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erreur lors de la recuperation des patients");
+    }
+    
+    return response.json();
 }
 
 export function useCreateWorkflow(options: UseWorkflowOptions = {}) {
@@ -115,5 +158,21 @@ export function useWorkflow(
       queryFn: () => fetchWorkflows(),
       staleTime: 1000 * 60 * 5,
       ...options
+    });
+  }
+
+export function useFetchWorkflow(workflowId: string) {
+  return useQuery({
+    queryKey: ["workflow", workflowId],
+    queryFn: () => fetchWorkflow(workflowId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useFetchWorkflowPatients(workflowId: string) {
+    return useQuery({
+      queryKey: ["workflow", workflowId, "patients"],
+      queryFn: () => getPatients(workflowId),
+      staleTime: 1000 * 60 * 5,
     });
   }

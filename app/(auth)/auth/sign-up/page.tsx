@@ -3,8 +3,6 @@
 import SignUpForm from "@/components/auth/SignUpForm";
 import { GalleryVerticalEnd } from "lucide-react";
 import Image from "next/image";
-
-import Link from "next/link";
 import { Suspense } from "react";
 
 export default function SignUpPage() {

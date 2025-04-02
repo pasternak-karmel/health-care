@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     if (rateLimitResult) return rateLimitResult;
 
-    const user = await getAuthenticatedUser(req);
+    await getAuthenticatedUser(req);
 
     const body = await req.json();
 

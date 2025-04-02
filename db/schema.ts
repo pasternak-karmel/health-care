@@ -171,3 +171,15 @@ export const workflowPatient = pgTable("workflow_patient", {
     .notNull()
     .references(() => patient.id, { onDelete: "cascade" }),
 });
+
+export const tasks = pgTable("tasks", {
+  id: uuid("id").defaultRandom().primaryKey().$defaultFn(createId),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patient.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+  priority: text("priority").notNull(),
+  completed: boolean("completed").default(false),
+  assignedTo: text("assigned_to").notNull(),
+});
