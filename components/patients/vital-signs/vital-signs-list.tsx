@@ -11,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,7 +20,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,43 +45,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  useDeleteLabResult,
-  useLabResults,
-} from "@/hooks/patient/use-lab-results";
+  useAvailableVitalSignTypes,
+  useDeleteVitalSign,
+  useVitalSigns,
+} from "@/hooks/patient/use-vital-signs";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { MoreHorizontal, Plus, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatDateCustom } from "../date-formater";
-import { LabResultsDialog } from "./lab-results-dialog";
+import { VitalSignsDialog } from "./vital-signs-dialog";
 
-interface LabResultsListProps {
+interface VitalSignsListProps {
   patientId: string;
 }
 
-export function LabResultsList({ patientId }: LabResultsListProps) {
-  const router = useRouter();
+export function VitalSignsList({ patientId }: VitalSignsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [abnormalOnly, setAbnormalOnly] = useState(false);
+  const [type, setType] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { data, isLoading, isError } = useLabResults(patientId, {
-    abnormalOnly,
+  const { data, isLoading, isError } = useVitalSigns(patientId, {
+    type,
     sortOrder,
     page,
     limit,
   });
 
-  const deleteLabResult = useDeleteLabResult(patientId);
+  const { data: availableTypes, isLoading: isTypesLoading } =
+    useAvailableVitalSignTypes(patientId);
+  const deleteVitalSign = useDeleteVitalSign(patientId);
 
   const handleDelete = () => {
     if (selectedRecord) {
-      deleteLabResult.mutate(selectedRecord.id, {
+      deleteVitalSign.mutate(selectedRecord.id, {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
           setSelectedRecord(null);
@@ -97,31 +97,19 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
     setIsEditDialogOpen(true);
   };
 
-  const handleView = (record: any) => {
-    router.push(`/patients/${patientId}/analyses/${record.id}`);
-  };
-
-  console.log(data?.data);
-
   const filteredRecords = data?.data.filter((record) => {
     if (!searchTerm) return true;
 
-    const results =
-      typeof record.results === "string"
-        ? JSON.parse(record.results)
-        : record.results;
+    const measurements =
+      typeof record.measurements === "string"
+        ? JSON.parse(record.measurements)
+        : record.measurements;
 
-    return (
-      (record.labName &&
-        record.labName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (record.notes &&
-        record.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      results.some(
-        (r: any) =>
-          r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.value.toString().includes(searchTerm) ||
-          r.unit.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    return measurements.some(
+      (m: any) =>
+        m.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.value.toString().includes(searchTerm) ||
+        m.unit.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -129,7 +117,7 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Résultats d&apos;analyses</CardTitle>
+          <CardTitle>Constantes vitales</CardTitle>
           <CardDescription>
             Une erreur est survenue lors du chargement des données.
           </CardDescription>
@@ -143,9 +131,9 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Résultats d&apos;analyses</CardTitle>
+            <CardTitle>Constantes vitales</CardTitle>
             <CardDescription>
-              Consultez les résultats d&apos;analyses du patient
+              Consultez les constantes vitales du patient
             </CardDescription>
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -166,21 +154,20 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="abnormalOnly"
-                  checked={abnormalOnly}
-                  onCheckedChange={(checked) =>
-                    setAbnormalOnly(checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="abnormalOnly"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Résultats anormaux uniquement
-                </label>
-              </div>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les types</SelectItem>
+                  {!isTypesLoading &&
+                    availableTypes?.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
               <Select
                 value={sortOrder}
                 onValueChange={(value) => setSortOrder(value as "asc" | "desc")}
@@ -205,7 +192,7 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
             ) : filteredRecords?.length === 0 ? (
               <div className="flex h-32 items-center justify-center rounded-md border border-dashed">
                 <p className="text-sm text-muted-foreground">
-                  Aucun résultat d&apos;analyse trouvé
+                  Aucune constante vitale trouvée
                 </p>
               </div>
             ) : (
@@ -214,60 +201,45 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Laboratoire</TableHead>
-                      <TableHead>Résultats</TableHead>
+                      <TableHead>Mesures</TableHead>
+                      <TableHead>Notes</TableHead>
                       <TableHead className="w-[80px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredRecords?.map((record) => {
-                      const results = Array.isArray(record.results)
-                        ? record.results
-                        : typeof record.results === "string"
-                        ? JSON.parse(record.results)
+                      const measurements = Array.isArray(record.measurements)
+                        ? record.measurements
+                        : typeof record.measurements === "string"
+                        ? JSON.parse(record.measurements)
                         : [];
-                      const hasAbnormal = results.some(
-                        (r: any) => r.isAbnormal
-                      );
-
                       return (
                         <TableRow key={record.id}>
                           <TableCell className="font-medium">
-                            {formatDateCustom(record.date)}
-                          </TableCell>
-                          <TableCell>
-                            {record.labName || (
-                              <span className="text-muted-foreground">-</span>
-                            )}
+                            {format(new Date(record.date), "PPP", {
+                              locale: fr,
+                            })}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-2">
-                              {results.slice(0, 3).map((r: any, i: number) => (
+                              {measurements.map((m: any, i: number) => (
                                 <div
                                   key={i}
-                                  className={`rounded-md px-2 py-1 text-xs ${
-                                    r.isAbnormal
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-muted text-muted-foreground"
-                                  }`}
+                                  className="rounded-md bg-muted px-2 py-1 text-xs"
                                 >
-                                  {r.name}: {r.value} {r.unit}
+                                  {m.type}: {m.value} {m.unit}
                                 </div>
                               ))}
-                              {results.length > 3 && (
-                                <Badge variant="outline">
-                                  +{results.length - 3} autres
-                                </Badge>
-                              )}
-                              {hasAbnormal && (
-                                <Badge
-                                  variant="destructive"
-                                  className="ml-auto"
-                                >
-                                  Anormal
-                                </Badge>
-                              )}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {record.notes ? (
+                              <span className="line-clamp-1">
+                                {record.notes}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -278,11 +250,6 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() => handleView(record)}
-                                >
-                                  Voir les détails
-                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleEdit(record)}
                                 >
@@ -311,7 +278,7 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            {data?.pagination.totalItems ?? 0} résultats d&apos;analyses
+            {data?.pagination.totalItems ?? 0} enregistrements
           </div>
           {data && data.pagination.totalPages > 1 && (
             <Pagination
@@ -323,14 +290,14 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
         </CardFooter>
       </Card>
 
-      <LabResultsDialog
+      <VitalSignsDialog
         patientId={patientId}
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
       />
 
       {selectedRecord && (
-        <LabResultsDialog
+        <VitalSignsDialog
           patientId={patientId}
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
@@ -347,7 +314,7 @@ export function LabResultsList({ patientId }: LabResultsListProps) {
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
               Cette action ne peut pas être annulée. Cela supprimera
-              définitivement ce résultat d&apos;analyse.
+              définitivement cet enregistrement de constantes vitales.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
