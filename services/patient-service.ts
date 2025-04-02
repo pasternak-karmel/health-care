@@ -160,7 +160,7 @@ export class PatientService {
             id: infoMedical.id,
             stade: infoMedical.stade,
             status: infoMedical.status,
-            medecin: infoMedical.medecin,
+            medecin: user.name,
             dfg: infoMedical.dfg,
             previousDfg: infoMedical.previousDfg,
             proteinurie: infoMedical.proteinurie,
@@ -171,6 +171,7 @@ export class PatientService {
         })
         .from(patient)
         .leftJoin(infoMedical, eq(patient.id, infoMedical.patientId))
+        .rightJoin(user, eq(infoMedical.medecin, user.id))
         .where(eq(patient.id, id));
 
       if (!result) {
@@ -237,21 +238,21 @@ export class PatientService {
         );
       }
 
-      await db.transaction(async (tx) => {
-        await tx.insert(patient).values({
-          id: patientId,
-          firstname,
-          lastname,
-          birthdate,
-          sex,
-          email,
-          phone,
-          address,
-          createdAt: now,
-          updatedAt: now,
-        });
+      await db.insert(patient).values({
+        id: patientId,
+        firstname,
+        lastname,
+        birthdate,
+        sex,
+        email,
+        phone,
+        address,
+        createdAt: now,
+        updatedAt: now,
+      });
 
-        await tx.insert(infoMedical).values({
+      try {
+        await db.insert(infoMedical).values({
           id: uuidv4(),
           patientId,
           stade: medicalInfo.stage,
@@ -267,7 +268,7 @@ export class PatientService {
           updatedAt: now,
         });
 
-        await tx.insert(historique).values({
+        await db.insert(historique).values({
           id: uuidv4(),
           patientId,
           date: now,
@@ -278,7 +279,13 @@ export class PatientService {
           createdAt: now,
           updatedAt: now,
         });
-      });
+      } catch (error) {
+        await db.delete(patient).where(eq(patient.id, patientId));
+        if (error instanceof ApiError) {
+          throw error;
+        }
+        throw ApiError.internalServer("Failed to create patient");
+      }
 
       await deleteCacheByPattern("patients:list:*");
       await deleteCacheByPattern("dashboard:stats");
@@ -314,7 +321,7 @@ export class PatientService {
         );
       }
 
-      await db.transaction(async (tx) => {
+      try {
         const patientFields: any = {};
 
         if (data.firstname !== undefined)
@@ -329,7 +336,7 @@ export class PatientService {
 
         if (Object.keys(patientFields).length > 0) {
           patientFields.updatedAt = now;
-          await tx.update(patient).set(patientFields).where(eq(patient.id, id));
+          await db.update(patient).set(patientFields).where(eq(patient.id, id));
         }
 
         if (data.medicalInfo) {
@@ -354,7 +361,7 @@ export class PatientService {
             medicalFields.proteinurie = proteinurie;
           }
 
-          await tx
+          await db
             .update(infoMedical)
             .set(medicalFields)
             .where(eq(infoMedical.patientId, id));
@@ -382,7 +389,7 @@ export class PatientService {
               description += `Statut ${existingPatient.medicalInfo?.status} → ${status}. `;
             }
 
-            await tx.insert(historique).values({
+            await db.insert(historique).values({
               id: uuidv4(),
               patientId: id,
               date: now,
@@ -396,7 +403,10 @@ export class PatientService {
             });
           }
         }
-      });
+      } catch (error) {
+        if (error instanceof ApiError) throw error;
+        throw ApiError.internalServer("Failed to update patient information");
+      }
 
       // Invalidate cache
       await deleteCache(`patients:${id}`);
@@ -632,11 +642,13 @@ export class PatientService {
         const [{ count: activeAlerts }] = await db
           .select({ count: sql<number>`count(*)` })
           .from(historique)
-          .where(and(
-            eq(historique.type, "alert"),
-            eq(historique.isResolved, false),
-            eq(historique.alertType, "critical")
-          ));
+          .where(
+            and(
+              eq(historique.type, "alert"),
+              eq(historique.isResolved, false),
+              eq(historique.alertType, "critical")
+            )
+          );
 
         // Get upcoming appointments (next 7 days)
         const nextWeek = new Date();
@@ -715,11 +727,11 @@ export class PatientService {
           .orderBy(desc(historique.date))
           .limit(5);
 
-          const alerts = alertData.map((alert, index) => ({
-            ...alert,
-            // id: index + 1,
-            date: formatDate(new Date(alert.date)),
-          }));
+        const alerts = alertData.map((alert, index) => ({
+          ...alert,
+          // id: index + 1,
+          date: formatDate(new Date(alert.date)),
+        }));
 
         return {
           totalPatients,
@@ -730,6 +742,30 @@ export class PatientService {
           recentPatients,
           alerts,
         };
+      },
+      300
+    );
+  }
+
+  /**
+   * get users
+   * @returns
+   */
+  static async getUsers() {
+    const cacheKey = "dashboard:users";
+
+    return withCache(
+      cacheKey,
+      async () => {
+        const users = await db
+          .select({
+            id: user.id,
+            name: user.name,
+          })
+          .from(user)
+          .orderBy(asc(user.name));
+
+        return users;
       },
       300
     );

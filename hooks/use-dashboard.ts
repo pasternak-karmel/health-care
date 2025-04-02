@@ -10,8 +10,8 @@ export interface DashboardStats {
   statusDistribution: Array<{ status: string; count: number }>;
   criticalPatients: number;
   activeAlerts: number;
-  upcomingAppointments: Array<Appointment>;
-  recentPatients: Array<Patient>;
+  upcomingAppointments: Appointment[];
+  recentPatients: Patient[];
   alerts: Array<Alert>;
 }
 

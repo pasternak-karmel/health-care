@@ -34,7 +34,9 @@ export const infoMedical = pgTable("information_medical", {
     .references(() => patient.id, { onDelete: "cascade" }),
   stade: integer("stade").notNull().default(1),
   status: text("status").notNull().default("stable"),
-  medecin: text("medecin").notNull(),
+  medecin: text("medecin")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   dfg: integer("dfg").notNull().default(0),
   previousDfg: integer("previous_dfg").notNull().default(0),
   proteinurie: integer("proteinurie").notNull().default(0),
