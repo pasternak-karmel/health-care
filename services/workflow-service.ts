@@ -207,7 +207,7 @@ export class WorkflowService {
           birthdate: patient.birthdate,
           status: infoMedical.status,
           initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname}, 1, 1)`,
-            avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
+          avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
         })
         .from(workflowPatient)
         .innerJoin(patient, eq(patient.id, workflowPatient.patientId))
@@ -230,16 +230,15 @@ export class WorkflowService {
             .where(
               and(
                 eq(historique.type, "alert"),
-                eq(workflowPatient.workflowId, id),
+                eq(workflowPatient.workflowId, id)
               )
             );
-
 
           return {
             ...data,
             alerts,
             tasks: 3,
-            age: calculateAge(data.birthdate)
+            age: calculateAge(data.birthdate),
           };
         })
       );
@@ -249,7 +248,7 @@ export class WorkflowService {
 
   static async getWorkflowAlerts(id: string) {
     const cacheKey = `workflows-alerts:${id}`;
-    
+
     return withCache(cacheKey, async () => {
       const result = await db
         .select({
@@ -265,41 +264,39 @@ export class WorkflowService {
           // date: sql<string>`strftime('%d/%m/%Y', ${historique.createdAt})`,
         })
         .from(workflowPatient)
-        .innerJoin(historique, eq(historique.patientId, workflowPatient.patientId))
+        .innerJoin(
+          historique,
+          eq(historique.patientId, workflowPatient.patientId)
+        )
         .innerJoin(patient, eq(patient.id, historique.patientId))
         .where(
-          and(
-            eq(workflowPatient.workflowId, id),
-            eq(historique.type, "alert")
-          )
+          and(eq(workflowPatient.workflowId, id), eq(historique.type, "alert"))
         );
 
-        if (!result) {
-          throw ApiError.notFound(`Workflow with ID ${id} not found`);
-        }
+      if (!result) {
+        throw ApiError.notFound(`Workflow with ID ${id} not found`);
+      }
 
-        const data = await Promise.all(
-          result.map(async (item) => {
-            const patientData = {
-              id: item.patientId,
-              name: item.patient,
-              avatar: item.avatar,
-              initials: item.initials,
-            };
-      
-            const { patientId, patient, avatar, initials, ...rest } = item;
-      
-            return {
-              ...rest,
-              patient: patientData,
-              date: formatDate(item.createdAt),
-            };
-          })
-        );
+      const data = await Promise.all(
+        result.map(async (item) => {
+          const patientData = {
+            id: item.patientId,
+            name: item.patient,
+            avatar: item.avatar,
+            initials: item.initials,
+          };
 
-        return data;
+          const { patientId, patient, avatar, initials, ...rest } = item;
 
+          return {
+            ...rest,
+            patient: patientData,
+            date: formatDate(item.createdAt),
+          };
+        })
+      );
 
+      return data;
     });
   }
 
@@ -317,20 +314,26 @@ export class WorkflowService {
         );
       }
 
-      const tx = await db.transaction(async (trx) => {
-        const [insertedWorkflow] = await trx
-          .insert(workflow)
-          .values({
-            id: uuidv4(),
-            title,
-            description,
-          })
-          .returning();
+      const existingWorkflow = await db
+        .select()
+        .from(workflow)
+        .where(eq(workflow.title, title))
+        .limit(1);
 
-        return insertedWorkflow;
-      });
+      if (existingWorkflow.length > 0) {
+        throw ApiError.conflict("Le workflow existe déjà");
+      }
 
-      return this.getWorkflowById(tx.id);
+      const [insertedWorkflow] = await db
+        .insert(workflow)
+        .values({
+          id: uuidv4(),
+          title,
+          description,
+        })
+        .returning();
+
+      return this.getWorkflowById(insertedWorkflow.id);
     } catch (error) {
       console.log(error);
       if (error instanceof ApiError) {
