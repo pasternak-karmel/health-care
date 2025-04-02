@@ -51,7 +51,7 @@ export default function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0">
-            <Sidebar />
+            <Sidebar/>
           </SheetContent>
         </Sheet>
       )}

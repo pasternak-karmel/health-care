@@ -62,9 +62,9 @@ export default function SignUpForm() {
         className={cn("flex flex-col gap-6", "w-full max-w-sm mx-auto")}
       >
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Create an account</h1>
+          <h1 className="text-2xl font-bold">Créer un compte</h1>
           <p className="text-muted-foreground text-sm">
-            Enter your details below to sign up
+          Saisissez vos coordonnées  pour vous inscrire
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export default function SignUpForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Nom</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="John Doe" />
                 </FormControl>
@@ -105,7 +105,7 @@ export default function SignUpForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Mot de passe</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="********" type="password" />
                 </FormControl>
@@ -120,7 +120,7 @@ export default function SignUpForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>Confirmer le mot de passe</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="********" type="password" />
                 </FormControl>
@@ -130,11 +130,11 @@ export default function SignUpForm() {
           />
 
           <Button type="submit" className="w-full">
-            Sign Up
+            S'inscrire
           </Button>
 
           <div className="text-center text-sm">
-            Already have an account? <a href="/auth/sign-in" className="underline underline-offset-4">Sign in</a>
+          Vous avez déjà un compte ? <a href="/auth/sign-in" className="underline underline-offset-4">Se connecter</a>
           </div>
         </div>
       </form>
