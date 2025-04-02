@@ -247,6 +247,62 @@ export class WorkflowService {
     });
   }
 
+  static async getWorkflowAlerts(id: string) {
+    const cacheKey = `workflows-alerts:${id}`;
+    
+    return withCache(cacheKey, async () => {
+      const result = await db
+        .select({
+          id: historique.id,
+          patientId: historique.patientId,
+          patient: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
+          avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
+          initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname}, 1, 1)`,
+          type: historique.alertType,
+          message: historique.description,
+          createdAt: historique.createdAt,
+          resolved: historique.isResolved,
+          // date: sql<string>`strftime('%d/%m/%Y', ${historique.createdAt})`,
+        })
+        .from(workflowPatient)
+        .innerJoin(historique, eq(historique.patientId, workflowPatient.patientId))
+        .innerJoin(patient, eq(patient.id, historique.patientId))
+        .where(
+          and(
+            eq(workflowPatient.workflowId, id),
+            eq(historique.type, "alert")
+          )
+        );
+
+        if (!result) {
+          throw ApiError.notFound(`Workflow with ID ${id} not found`);
+        }
+
+        const data = await Promise.all(
+          result.map(async (item) => {
+            const patientData = {
+              id: item.patientId,
+              name: item.patient,
+              avatar: item.avatar,
+              initials: item.initials,
+            };
+      
+            const { patientId, patient, avatar, initials, ...rest } = item;
+      
+            return {
+              ...rest,
+              patient: patientData,
+              date: formatDate(item.createdAt),
+            };
+          })
+        );
+
+        return data;
+
+
+    });
+  }
+
   static async createWorkflow(data: CreateWorkflowInput) {
     const { title, description } = data;
 

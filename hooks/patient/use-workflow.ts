@@ -31,24 +31,24 @@ interface WorkflowListResponse {
 }
 
 interface WorkflowResponse {
-    id: string;
-    title: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-    patients: number;
-    alerts: {
-        total: number;
-        critical: number;
-        warning: number;
-    };
-    lastUpdated: string;
-    createdBy: string;
-    tasks: {
-        total: number;
-        completed: number;
-        pending: number;
-    };
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  patients: number;
+  alerts: {
+    total: number;
+    critical: number;
+    warning: number;
+  };
+  lastUpdated: string;
+  createdBy: string;
+  tasks: {
+    total: number;
+    completed: number;
+    pending: number;
+  };
 }
 
 export interface WorkflowQueryParams {
@@ -74,7 +74,9 @@ async function fetchWorkflows(
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || "Erreur lors de la recuperation des workflow");
+    throw new Error(
+      errorData.error || "Erreur lors de la recuperation des workflow"
+    );
   }
 
   return response.json();
@@ -85,7 +87,9 @@ async function fetchWorkflow(workflowId: string): Promise<WorkflowResponse> {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || "Erreur lors de la recuperation des workflow");
+    throw new Error(
+      errorData.error || "Erreur lors de la recuperation des workflow"
+    );
   }
   console.log("JJ");
   return response.json();
@@ -110,14 +114,31 @@ async function createWorkflow(workflowData: any): Promise<Workflow> {
 }
 
 async function getPatients(workflowId: string) {
-    const response = await fetch(`/api/workflow/${workflowId}/patients`);
-    
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erreur lors de la recuperation des patients");
-    }
-    
-    return response.json();
+  const response = await fetch(`/api/workflow/${workflowId}/patients`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error ||
+        "Erreur lors de la recuperation des patients du workflow"
+    );
+  }
+
+  return response.json();
+}
+
+async function getAlerts(workflowId: string) {
+  const response = await fetch(`/api/workflow/${workflowId}/alerts`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error ||
+        "Erreur lors de la recuperation des alertes du workflow"
+    );
+  }
+
+  return response.json();
 }
 
 export function useCreateWorkflow(options: UseWorkflowOptions = {}) {
@@ -150,16 +171,14 @@ export function useCreateWorkflow(options: UseWorkflowOptions = {}) {
   });
 }
 
-export function useWorkflow(
-  options: UseWorkflowOptions = {}
-) {
-    return useQuery({
-      queryKey: ["workflowData"],
-      queryFn: () => fetchWorkflows(),
-      staleTime: 1000 * 60 * 5,
-      ...options
-    });
-  }
+export function useWorkflow(options: UseWorkflowOptions = {}) {
+  return useQuery({
+    queryKey: ["workflowData"],
+    queryFn: () => fetchWorkflows(),
+    staleTime: 1000 * 60 * 5,
+    ...options,
+  });
+}
 
 export function useFetchWorkflow(workflowId: string) {
   return useQuery({
@@ -170,9 +189,17 @@ export function useFetchWorkflow(workflowId: string) {
 }
 
 export function useFetchWorkflowPatients(workflowId: string) {
-    return useQuery({
-      queryKey: ["workflow", workflowId, "patients"],
-      queryFn: () => getPatients(workflowId),
-      staleTime: 1000 * 60 * 5,
-    });
-  }
+  return useQuery({
+    queryKey: ["workflow", workflowId, "patients"],
+    queryFn: () => getPatients(workflowId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useFetchWorkflowAlerts(workflowId: string) {
+  return useQuery({
+    queryKey: ["workflow", workflowId, "alerts"],
+    queryFn: () => getAlerts(workflowId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
