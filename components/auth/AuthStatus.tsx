@@ -14,19 +14,27 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 
 export function AuthStatus() {
   const { data: session, isPending } = useSession();
   const user = session?.user;
   const router = useRouter();
 
+  
+  useEffect(() => {
+    if (!isPending && !user) {
+      const currentUrl = encodeURIComponent(window.location.href);
+      router.push(`/auth/sign-in?callbackUrl=${currentUrl}`);
+    }
+  }, [isPending, user, router]);
+
   if(isPending) {
     return <div>Loading...</div> //TODO: Add a spinner or loader
   }
 
   if (!user) {
-    const currentUrl = encodeURIComponent(window.location.href);
-    router.push(`/auth/sign-in?callbackUrl=${currentUrl}`);
     return null;
   }
 
