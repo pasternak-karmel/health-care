@@ -13,7 +13,7 @@ import { headers } from "next/headers";
 import { and, asc, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import { CreateWorkflowInput, WorkflowQueryParams } from "@/schemas/workflow";
 import { v4 as uuidv4 } from "uuid";
-import { formatDate } from "@/lib/utils";
+import { calculateAge, formatDate } from "@/lib/utils";
 
 export class WorkflowService {
   static async getWorkflows(params?: WorkflowQueryParams) {
@@ -80,18 +80,21 @@ export class WorkflowService {
             .from(workflowPatient)
             .where(eq(workflowPatient.workflowId, workflow.id));
 
-            const [{ alerts }] = await db
-                .select({ alerts: sql<number>`count(*)` })
-                .from(workflowPatient)
-                .innerJoin(historique, eq(historique.patientId, workflowPatient.patientId))
-                .where(
-                    and(
-                        eq(historique.type, "alert"),
-                        eq(workflowPatient.workflowId, workflow.id)
-                    )
-                );
-        
-            return {
+          const [{ alerts }] = await db
+            .select({ alerts: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .innerJoin(
+              historique,
+              eq(historique.patientId, workflowPatient.patientId)
+            )
+            .where(
+              and(
+                eq(historique.type, "alert"),
+                eq(workflowPatient.workflowId, workflow.id)
+              )
+            );
+
+          return {
             ...workflow,
             patients,
             alerts,
@@ -99,25 +102,6 @@ export class WorkflowService {
           };
         })
       );
-
-      console.log(newWorkflows);
-
-      //   workflows.map(async (workflow) => {
-      //     const [{ patients }] = await db
-      //       .select({ patients: sql<number>`count(*)` })
-      //       .from(workflowPatient)
-      //       .where(eq(workflowPatient.workflowId, workflow.id));
-
-      //     const [{ alerts }] = await db
-      //       .select({ alerts: sql<number>`count(*)` })
-      //       .from(historique)
-      //       .where(
-      //         and(
-      //           eq(historique.type, "alert")
-      //           // eq(historique.)
-      //         )
-      //       );
-      //   });
 
       // Get total count for pagination
       const [{ count }] = await db
@@ -141,7 +125,7 @@ export class WorkflowService {
     const cacheKey = `workflows:${id}`;
 
     return withCache(cacheKey, async () => {
-      const [result] = await db
+      const result = await db
         .select()
         .from(workflow)
         .where(eq(workflow.id, id));
@@ -150,7 +134,116 @@ export class WorkflowService {
         throw ApiError.notFound(`Workflow with ID ${id} not found`);
       }
 
-      return result;
+      const data = await Promise.all(
+        result.map(async (workflow) => {
+          const [{ patients }] = await db
+            .select({ patients: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .where(eq(workflowPatient.workflowId, workflow.id));
+
+          const [{ criticalAlerts }] = await db
+            .select({ criticalAlerts: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .innerJoin(
+              historique,
+              eq(historique.patientId, workflowPatient.patientId)
+            )
+            .where(
+              and(
+                eq(historique.type, "alert"),
+                eq(workflowPatient.workflowId, workflow.id),
+                eq(historique.alertType, "critical")
+              )
+            );
+
+          const [{ warningAlerts }] = await db
+            .select({ warningAlerts: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .innerJoin(
+              historique,
+              eq(historique.patientId, workflowPatient.patientId)
+            )
+            .where(
+              and(
+                eq(historique.type, "alert"),
+                eq(workflowPatient.workflowId, workflow.id),
+                eq(historique.alertType, "warning")
+              )
+            );
+
+          return {
+            ...workflow,
+            patients,
+            alerts: {
+              total: Number(criticalAlerts) + Number(warningAlerts),
+              critical: criticalAlerts,
+              warning: warningAlerts,
+            },
+            tasks: {
+              total: 24,
+              completed: 15,
+              pending: 9,
+            },
+            lastUpdated: formatDate(workflow.updatedAt),
+          };
+        })
+      );
+
+      return data[0];
+    });
+  }
+
+  static async getWorkflowPatients(id: string) {
+    const cacheKey = `workflows-patients:${id}`;
+
+    return withCache(cacheKey, async () => {
+      const result = await db
+        .select({
+          id: patient.id,
+          name: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
+          stage: infoMedical.stade,
+          lastVisit: infoMedical.lastvisite,
+          nextVisit: infoMedical.nextvisite,
+          birthdate: patient.birthdate,
+          status: infoMedical.status,
+          initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname}, 1, 1)`,
+            avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
+        })
+        .from(workflowPatient)
+        .innerJoin(patient, eq(patient.id, workflowPatient.patientId))
+        .innerJoin(infoMedical, eq(infoMedical.patientId, patient.id))
+        .where(eq(workflowPatient.workflowId, id));
+
+      if (!result) {
+        throw ApiError.notFound(`Workflow with ID ${id} not found`);
+      }
+
+      const data = await Promise.all(
+        result.map(async (data) => {
+          const [{ alerts }] = await db
+            .select({ alerts: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .innerJoin(
+              historique,
+              eq(historique.patientId, workflowPatient.patientId)
+            )
+            .where(
+              and(
+                eq(historique.type, "alert"),
+                eq(workflowPatient.workflowId, id),
+              )
+            );
+
+
+          return {
+            ...data,
+            alerts,
+            tasks: 3,
+            age: calculateAge(data.birthdate)
+          };
+        })
+      );
+      return data;
     });
   }
 

@@ -683,7 +683,7 @@ export class PatientService {
             name: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
             lastVisit: infoMedical.lastvisite,
             stage: infoMedical.stade,
-            age: sql<number>`14`, //TODO: Calculate age
+            age: sql<number>`extract(year from age(${patient.birthdate}))`,
             critical: eq(infoMedical.status, "critical"),
             initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname}, 1, 1)`,
             avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
