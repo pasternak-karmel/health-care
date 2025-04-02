@@ -1,3 +1,4 @@
+"use client"
 import SignInForm from "@/components/auth/SignInForm";
 import { GalleryVerticalEnd } from "lucide-react";
 import Image from "next/image";
