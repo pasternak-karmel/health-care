@@ -5,43 +5,43 @@ import { createTaskSchema } from "@/schemas/task";
 import { TaskService } from "@/services/task-service";
 import type { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
-  try {
-    const rateLimitResult = await rateLimit(req, {
-      limit: 100,
-      window: 60,
-    });
+// export async function GET(req: NextRequest) {
+//   try {
+//     const rateLimitResult = await rateLimit(req, {
+//       limit: 100,
+//       window: 60,
+//     });
 
-    if (rateLimitResult) return rateLimitResult;
+//     if (rateLimitResult) return rateLimitResult;
 
-    await getAuthenticatedUser(req);
+//     await getAuthenticatedUser(req);
 
-    // Parse query parameters
-    const searchParams = req.nextUrl.searchParams;
-    const queryParams = {
-      page: searchParams.get("page"),
-      limit: searchParams.get("limit"),
-      search: searchParams.get("search"),
-      sortBy: searchParams.get("sortBy"),
-      sortOrder: searchParams.get("sortOrder"),
-    };
+//     // Parse query parameters
+//     const searchParams = req.nextUrl.searchParams;
+//     // const queryParams = {
+//     //   page: searchParams.get("page"),
+//     //   limit: searchParams.get("limit"),
+//     //   search: searchParams.get("search"),
+//     //   sortBy: searchParams.get("sortBy"),
+//     //   sortOrder: searchParams.get("sortOrder"),
+//     // };
 
-    // Validate query parameters
-    // const validatedParams = workflowQuerySchema.parse({
-    //   page: queryParams.page ? Number(queryParams.page) : undefined,
-    //   limit: queryParams.limit ? Number(queryParams.limit) : undefined,
-    //   search: queryParams.search || undefined,
-    //   sortBy: queryParams.sortBy || undefined,
-    //   sortOrder: queryParams.sortOrder || undefined,
-    // });
+//     // Validate query parameters
+//     // const validatedParams = workflowQuerySchema.parse({
+//     //   page: queryParams.page ? Number(queryParams.page) : undefined,
+//     //   limit: queryParams.limit ? Number(queryParams.limit) : undefined,
+//     //   search: queryParams.search || undefined,
+//     //   sortBy: queryParams.sortBy || undefined,
+//     //   sortOrder: queryParams.sortOrder || undefined,
+//     // });
 
-    // const result = await WorkflowService.getWorkflows(validatedParams);
+//     // const result = await WorkflowService.getWorkflows(validatedParams);
 
-    // return Response.json(result);
-  } catch (error) {
-    return handleApiError(error);
-  }
-}
+//     // return Response.json(result);
+//   } catch (error) {
+//     return handleApiError(error);
+//   }
+// }
 
 export async function POST(req: NextRequest) {
   try {

@@ -173,7 +173,7 @@ export default function TaskForm({
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date d'échéance</FormLabel>
+                    <FormLabel>Date d&apos;échéance</FormLabel>
                     <FormControl>
                       <Input type="date" placeholder="YYYY-MM-DD" {...field} />
                     </FormControl>
