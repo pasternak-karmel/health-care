@@ -51,11 +51,13 @@ type Patient = {
 };
 
 export function WorkflowPatients({ workflowId }: WorkflowPatientsProps) {
-  
-  const router= useRouter();
+  const router = useRouter();
+
   const currentPage = window.location.pathname;
   const handleAddTaskClick = (patientId?: string) => {
-    router.push("/tasks/nouveau?redirectTo="+ currentPage +"&patientId=" + patientId);
+    router.push(
+      "/tasks/nouveau?redirectTo=" + currentPage + "&patientId=" + patientId
+    );
   };
 
   const { data: patients } = useFetchWorkflowPatients(workflowId);
