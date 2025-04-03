@@ -3,6 +3,7 @@ import {
   historique,
   infoMedical,
   patient,
+  tasks as taskTable,
   workflow,
   workflowPatient,
 } from "@/db/schema";
@@ -94,10 +95,22 @@ export class WorkflowService {
               )
             );
 
+          const [{ tasks }] = await db
+          .select({ tasks: sql<number>`count(*)` })
+          .from(workflowPatient)
+          .innerJoin(
+            taskTable,
+            eq(taskTable.patientId, workflowPatient.patientId)
+          )
+          .where(
+              eq(workflowPatient.workflowId, workflow.id)
+          );
+
           return {
             ...workflow,
             patients,
             alerts,
+            tasks,
             lastUpdated: formatDate(workflow.lastUpdated),
           };
         })
@@ -171,6 +184,34 @@ export class WorkflowService {
               )
             );
 
+          const [{ pendingTasks }] = await db
+            .select({ pendingTasks: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .innerJoin(
+              taskTable,
+              eq(taskTable.patientId, workflowPatient.patientId)
+            )
+            .where(
+              and(
+                eq(workflowPatient.workflowId, workflow.id),
+                eq(taskTable.completed, false)
+              )
+            );
+
+            const [{ completedTasks }] = await db
+            .select({ completedTasks: sql<number>`count(*)` })
+            .from(workflowPatient)
+            .innerJoin(
+              taskTable,
+              eq(taskTable.patientId, workflowPatient.patientId)
+            )
+            .where(
+              and(
+                eq(workflowPatient.workflowId, workflow.id),
+                eq(taskTable.completed, true)
+              )
+            );
+
           return {
             ...workflow,
             patients,
@@ -180,9 +221,9 @@ export class WorkflowService {
               warning: warningAlerts,
             },
             tasks: {
-              total: 24,
-              completed: 15,
-              pending: 9,
+              total: Number(completedTasks) + Number(pendingTasks),
+              completed: completedTasks,
+              pending: pendingTasks,
             },
             lastUpdated: formatDate(workflow.updatedAt),
           };
@@ -243,6 +284,57 @@ export class WorkflowService {
         })
       );
       return data;
+    });
+  }
+
+  static async getWorkflowTasks(id: string) {
+    const cacheKey = `workflows-tasks:${id}`;
+    return withCache(cacheKey, async () => {
+      const result = await db
+        .select({
+          id: taskTable.id,
+          title: taskTable.title,
+          patientId: taskTable.patientId,
+          patient: sql<string>`${patient.firstname} || ' ' || ${patient.lastname}`,
+          avatar: sql<string>`'/placeholder.svg?height=40&width=40'`,
+          initials: sql<string>`substring(${patient.firstname}, 1, 1) || substring(${patient.lastname}, 1, 1)`,
+          dueDate: taskTable.dueDate,
+          priority: taskTable.priority,
+          completed: taskTable.completed,
+          assignedTo: taskTable.assignedTo,
+        })
+        .from(workflowPatient)
+        .innerJoin(patient, eq(patient.id, workflowPatient.patientId))
+        .innerJoin(taskTable, eq(taskTable.patientId, workflowPatient.patientId))
+        .where(eq(workflowPatient.workflowId, id))
+        .orderBy(desc(taskTable.dueDate))
+        ;
+
+      if (!result) {
+        throw ApiError.notFound(`Workflow with ID ${id} not found`);
+      }
+
+      const data = await Promise.all(
+        result.map(async (item) => {
+          const patientData = {
+            id: item.patientId,
+            name: item.patient,
+            avatar: item.avatar,
+            initials: item.initials,
+          };
+
+          const { patientId, patient, avatar, initials, ...rest } = item;
+
+          return {
+            ...rest,
+            patient: patientData,
+            dueDate: formatDate(item.dueDate),
+          };
+        })
+      );
+
+      return data;
+    
     });
   }
 

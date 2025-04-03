@@ -75,7 +75,7 @@ export default function WorkflowsPage() {
                     <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 mb-2">
                       <ClipboardList className="h-5 w-5 text-primary" />
                     </div>
-                    {/* <div className="text-xl font-bold">{workflow.tasks}</div> */}
+                    <div className="text-xl font-bold">{workflow.tasks}</div>
                     <div className="text-xs text-muted-foreground">Tâches</div>
                   </div>
                   <div className="flex flex-col items-center">

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { usePatientList } from "@/hooks/patient/use-patient";
+import { useEffect, useState } from "react";
 
 const taskSchema = createTaskSchema;
 
@@ -48,13 +49,24 @@ export default function TaskForm({
     redirectTo: redirectTo,
   });
 
-  const { data: patients, isLoading, error } = usePatientList();
+  const { data: patients } = usePatientList();
+  const [currentPatient, setCurrentPatient] = useState(patientId || "");
+
+  useEffect(() => {
+    if (patientId) {
+      setCurrentPatient(patientId);
+    }
+  }, [patientId]);
+
+  const handlePatientChange = (value: string) => {
+    setCurrentPatient(value);
+  };
 
   const isSubmitting = isCreating;
   const form = useForm<TaskValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-      patientId: patientId || "", // Set the default patientId here
+      patientId: patientId || "",
     },
   });
 
@@ -108,7 +120,7 @@ export default function TaskForm({
                     <FormItem className="flex-1">
                       <FormLabel>Priorité de la tâche</FormLabel>
                       <FormControl>
-                        <Select>
+                        <Select onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Sélectionner une priorité" />
                           </SelectTrigger>
@@ -132,8 +144,11 @@ export default function TaskForm({
                       <FormLabel>Patient</FormLabel>
                       <FormControl>
                         <Select
-                          value={patientId || ""}
-                          onValueChange={field.onChange}
+                          value={currentPatient}
+                          onValueChange={(value) => {
+                            handlePatientChange(value);
+                            field.onChange(value);
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Sélectionner un patient" />

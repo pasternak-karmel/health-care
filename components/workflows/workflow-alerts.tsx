@@ -4,8 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFetchWorkflowAlerts } from "@/hooks/patient/use-workflow";
+import { useLoader } from "@/provider/LoaderContext";
 import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface WorkflowAlertsProps {
   workflowId: string;
@@ -26,8 +29,49 @@ type Alert = {
 };
 
 export function WorkflowAlerts({ workflowId }: WorkflowAlertsProps) {
-  console.log(workflowId);
-  const { data: alerts } = useFetchWorkflowAlerts(workflowId);
+  const { data: alertData, isLoading : loading} = useFetchWorkflowAlerts(workflowId);
+  const [alerts, setAlerts] = useState<Alert[]>(alertData);
+
+  const { startLoading, stopLoading } = useLoader();
+
+  useEffect(() => {
+    if(loading) {
+      startLoading();
+    }
+    else if (alertData) {
+      setAlerts(alertData);
+    }
+    stopLoading();
+  }, [alertData, loading, startLoading, stopLoading]);
+  
+  async function resolve(id:string){
+    try {
+      const response = await fetch(`/api/alerts/${id}`);
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Erreur lors de la résolution de l'alerte"
+        );
+      }
+  
+      const data = await response.json();
+      toast.success("Alerte résolue avec succès");
+
+      setAlerts((prevAlerts) =>
+        prevAlerts.map((alert) =>
+          alert.id === id ? { ...alert, resolved: true } : alert
+        )
+      );
+
+      return data as Alert;
+    } catch (err) {
+      const error =
+        err instanceof Error ? err : new Error("Une erreur inconnue s'est produite");
+      toast.error(error.message);
+      throw error;
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -90,7 +134,7 @@ export function WorkflowAlerts({ workflowId }: WorkflowAlertsProps) {
           </div>
 
           {!alert.resolved ? (
-            <Button variant="outline" size="sm" className="gap-1">
+            <Button onClick={() => resolve(alert.id)} variant="outline" size="sm" className="gap-1">
               <CheckCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Résoudre</span>
             </Button>
