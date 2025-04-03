@@ -159,10 +159,12 @@ export default function WorkflowDetailsPage(props: { params: Params }) {
                   Tâches programmées pour les patients de ce workflow
                 </CardDescription>
               </div>
+              <Link href={`/tasks/nouveau?redirectTo=/workflows/${params.id}`}>
               <Button size="sm">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Nouvelle tâche
               </Button>
+              </Link>
             </CardHeader>
             <CardContent>
               <WorkflowTasks workflowId={params.id} />
