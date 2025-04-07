@@ -6,12 +6,35 @@ import { toast } from "sonner";
 interface Notification {
   id: string;
   userId: string;
-  patientId?: string;
+  patientId: string | null;
   title: string;
   message: string;
-  type: string; // 'info', 'warning', 'critical'
+  type:
+    | "info"
+    | "warning"
+    | "critical"
+    | "appointment"
+    | "medication"
+    | "lab_result"
+    | "vital_sign";
+  category:
+    | "patient_status"
+    | "appointment"
+    | "lab_result"
+    | "medication"
+    | "vital_sign"
+    | "administrative";
+  priority: "low" | "normal" | "high" | "urgent";
+  status: "pending" | "in_progress" | "completed" | "dismissed";
   read: boolean;
+  actionRequired: boolean;
+  actionType: string | null;
+  actionUrl: string | null;
+  scheduledFor: Date | null;
+  expiresAt: Date | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 // Fetch all notifications

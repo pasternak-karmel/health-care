@@ -350,10 +350,15 @@ export class VitalSignsService {
         const types = new Set<string>();
 
         records.forEach((record) => {
+          // const parsedMeasurements = JSON.parse(
+          //   record.measurements as unknown as string
+          // );
+
           const parsedMeasurements =
             typeof record.measurements === "string"
               ? JSON.parse(record.measurements)
               : record.measurements;
+
           parsedMeasurements.forEach((m: VitalSignData) => {
             types.add(m.type);
           });
