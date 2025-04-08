@@ -4,18 +4,7 @@ import { Notifications, notificationPreferences, patient } from "@/db/schema";
 import { ApiError } from "@/lib/api-error";
 import { auth } from "@/lib/auth";
 import { deleteCache, deleteCacheByPattern, withCache } from "@/lib/cache";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  gte,
-  ilike,
-  inArray,
-  lte,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 
@@ -51,6 +40,7 @@ export interface CreateNotificationInput {
   actionUrl?: string;
   scheduledFor?: Date | string;
   expiresAt?: Date | string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: Record<string, any>;
 }
 
@@ -72,13 +62,15 @@ export class NotificationService {
       search,
       page = 1,
       limit = 20,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       sortBy = "createdAt",
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       sortOrder = "desc",
     } = filters;
 
     let userId = filters.userId;
 
-    const offset = (page - 1) * limit;
+    // const offset = (page - 1) * limit;
 
     const cacheKey = `notifications:${userId || ""}:${page}:${limit}:${JSON.stringify(filters)}`;
 
@@ -158,22 +150,22 @@ export class NotificationService {
         whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
       // Build order by clause
-      const orderByClause = (() => {
-        const direction = sortOrder === "asc" ? asc : desc;
+      // const orderByClause = (() => {
+      //   const direction = sortOrder === "asc" ? asc : desc;
 
-        switch (sortBy) {
-          case "createdAt":
-            return direction(Notifications.createdAt);
-          case "priority":
-            return direction(Notifications.priority);
-          case "scheduledFor":
-            return direction(Notifications.scheduledFor);
-          case "expiresAt":
-            return direction(Notifications.expiresAt);
-          default:
-            return direction(Notifications.createdAt);
-        }
-      })();
+      //   switch (sortBy) {
+      //     case "createdAt":
+      //       return direction(Notifications.createdAt);
+      //     case "priority":
+      //       return direction(Notifications.priority);
+      //     case "scheduledFor":
+      //       return direction(Notifications.scheduledFor);
+      //     case "expiresAt":
+      //       return direction(Notifications.expiresAt);
+      //     default:
+      //       return direction(Notifications.createdAt);
+      //   }
+      // })();
 
       // let notifications;
 
@@ -426,7 +418,7 @@ export class NotificationService {
         try {
           parsedMetadata = JSON.stringify(metadata);
         } catch (error) {
-          throw ApiError.badRequest("Invalid metadata format");
+          throw ApiError.badRequest(`Invalid metadata format ${error}`);
         }
       }
 

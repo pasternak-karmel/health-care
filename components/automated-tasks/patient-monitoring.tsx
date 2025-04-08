@@ -144,8 +144,8 @@ export function PatientMonitoring({ patientId }: PatientMonitoringProps) {
             className={getHealthScoreColor(healthScore)}
           />
           <p className="text-xs text-muted-foreground">
-            Score basé sur l'état actuel du patient, les résultats d'analyses et
-            l'historique médical
+            Score basé sur l&apos;état actuel du patient, les résultats
+            d&apos;analyses et l&apos;historique médical
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export function PatientMonitoring({ patientId }: PatientMonitoringProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Changements d'état</span>
+              <span className="text-sm">Changements d&apos;état</span>
             </div>
             <Switch
               checked={monitoringSettings.statusChanges}
@@ -168,7 +168,7 @@ export function PatientMonitoring({ patientId }: PatientMonitoringProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Résultats d'analyses</span>
+              <span className="text-sm">Résultats d&apos;analyses</span>
             </div>
             <Switch
               checked={monitoringSettings.labResults}

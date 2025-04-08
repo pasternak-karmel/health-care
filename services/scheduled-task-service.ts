@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db";
 import { appointments, patient, reports, scheduledTasks } from "@/db/schema";
 import { ApiError } from "@/lib/api-error";
@@ -14,7 +15,6 @@ export class ScheduledTaskService {
       let processedCount = 0;
       let errorCount = 0;
 
-      // Find tasks that are due
       const dueTasks = await db
         .select()
         .from(scheduledTasks)
@@ -25,24 +25,20 @@ export class ScheduledTaskService {
             sql`${scheduledTasks.retryCount} < ${scheduledTasks.maxRetries}`
           )
         )
-        .limit(50); // Process in batches
+        .limit(50);
 
-      console.log(`Processing ${dueTasks.length} due tasks`);
 
-      // Process each task
       for (const task of dueTasks) {
         try {
-          // Validate task data
           if (!task.data) {
             throw new Error("Task data is missing or invalid");
           }
 
-          let taskData;
-          try {
-            taskData = JSON.parse(task.data);
-          } catch (e) {
-            throw new Error(`Invalid task data format: ${e.message}`);
-          }
+          // try {
+          //   const taskData = JSON.parse(task.data);
+          // } catch (e) {
+          //   throw new Error(`Invalid task data format: ${e.message}`);
+          // }
 
           // Mark task as processing
           await db
@@ -53,7 +49,6 @@ export class ScheduledTaskService {
             })
             .where(eq(scheduledTasks.id, task.id));
 
-          // Process task based on type
           let result;
           switch (task.type) {
             case "appointment_confirmation":
@@ -72,7 +67,6 @@ export class ScheduledTaskService {
               throw new Error(`Unknown task type: ${task.type}`);
           }
 
-          // Mark task as completed
           await db
             .update(scheduledTasks)
             .set({
@@ -88,7 +82,6 @@ export class ScheduledTaskService {
           errorCount++;
           console.error(`Error processing task ${task.id}:`, error);
 
-          // Mark task as failed or increment retry count
           await db
             .update(scheduledTasks)
             .set({
@@ -146,17 +139,14 @@ export class ScheduledTaskService {
         throw new Error(`Appointment with ID ${appointmentId} not found`);
       }
 
-      // In a real implementation, this would send an email to the patient
-      console.log(
-        `Sending appointment confirmation email to ${appointment.patient.email}`
-      );
+      
 
       // Create notification for doctor
       await NotificationService.createNotification({
         userId: doctorId,
         patientId,
         title: "Appointment Confirmation Sent",
-        message: `Confirmation for appointment with ${appointment.patient.firstname} ${appointment.patient.lastname} on ${new Date(appointment.date).toLocaleDateString()} has been sent`,
+        message: `Confirmation for appointment with ${appointment?.patient?.firstname} ${appointment?.patient?.lastname} on ${new Date(appointment.date).toLocaleDateString()} has been sent`,
         type: "appointment",
         category: "appointment",
         priority: "low",
@@ -207,17 +197,16 @@ export class ScheduledTaskService {
       throw new Error(`Appointment with ID ${appointmentId} not found`);
     }
 
-    // In a real implementation, this would send an email to the patient
-    console.log(
-      `Sending appointment reminder email to ${appointment.patient.email}`
-    );
+    // console.log(
+    //   `Sending appointment reminder email to ${appointment?.patient?.email}`
+    // );
 
     // Create notification for doctor
     await NotificationService.createNotification({
       userId: doctorId,
       patientId,
       title: "Appointment Reminder Sent",
-      message: `Reminder for appointment with ${appointment.patient.firstname} ${appointment.patient.lastname} tomorrow at ${new Date(appointment.date).toLocaleTimeString()} has been sent`,
+      message: `Reminder for appointment with ${appointment?.patient?.firstname} ${appointment?.patient?.lastname} tomorrow at ${new Date(appointment.date).toLocaleTimeString()} has been sent`,
       type: "appointment",
       category: "appointment",
       priority: "low",
@@ -264,14 +253,14 @@ export class ScheduledTaskService {
     }
 
     // In a real implementation, this would send an email to the patient
-    console.log(`Sending report to ${report.patient.email}`);
+    // console.log(`Sending report to ${report.patient.email}`);
 
     // Create notification for doctor
     await NotificationService.createNotification({
       userId: doctorId,
       patientId,
       title: "Report Sent to Patient",
-      message: `Report "${report.title}" has been sent to ${report.patient.firstname} ${report.patient.lastname}`,
+      message: `Report "${report.title}" has been sent to ${report?.patient?.firstname} ${report?.patient?.lastname}`,
       type: "report",
       category: "administrative",
       priority: "normal",
@@ -296,7 +285,7 @@ export class ScheduledTaskService {
    */
   private static async processMedicationReminder(task: any) {
     const data = JSON.parse(task.data);
-    const { patientId, doctorId, medicationId, medicationName } = data;
+    const { patientId, doctorId, medicationName } = data;
 
     // Get patient details
     const [patientData] = await db
@@ -313,8 +302,6 @@ export class ScheduledTaskService {
       throw new Error(`Patient with ID ${patientId} not found`);
     }
 
-    // In a real implementation, this would send an email or SMS to the patient
-    console.log(`Sending medication reminder to ${patientData.email}`);
 
     // Create notification for doctor
     await NotificationService.createNotification({

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 import SignInForm from "@/components/auth/SignInForm";
-import { Activity, GalleryVerticalEnd } from "lucide-react";
+import { Activity } from "lucide-react";
 import Image from "next/image";
 import { Suspense } from "react";
 
@@ -10,7 +10,7 @@ export default function SignInPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
-          <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center">
               <Activity className="h-5 w-5 text-primary-foreground" />
             </div>
             Health Care

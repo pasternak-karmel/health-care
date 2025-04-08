@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { patient, reports, scheduledTasks } from "@/db/schema";
@@ -292,7 +294,7 @@ export class ReportService {
           userId: doctorId,
           patientId,
           title: "New Report Finalized",
-          message: `Report "${title}" for patient ${patientExists.firstname} ${patientExists.lastname} has been finalized`,
+          message: `Report "${title}" for patient ${patientExists.id} has been finalized`,
           type: "report",
           category: "administrative",
           priority: "normal",
@@ -374,7 +376,7 @@ export class ReportService {
           userId: report.doctorId,
           patientId: report.patientId,
           title: "Report Finalized",
-          message: `Report "${report.title}" for patient ${report.patient.firstname} ${report.patient.lastname} has been finalized`,
+          message: `Report "${report.title}" for patient ${report?.patient?.firstname} ${report?.patient?.lastname} has been finalized`,
           type: "report",
           category: "administrative",
           priority: "normal",
@@ -435,7 +437,7 @@ export class ReportService {
    */
   static async deleteReport(id: string) {
     try {
-      const report = await this.getReportById(id);
+      // const report = await this.getReportById(id);
 
       // Delete report
       await db.delete(reports).where(eq(reports.id, id));
