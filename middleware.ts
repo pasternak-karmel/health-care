@@ -66,6 +66,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // Update the matcher to allow the public/images/ folder and other static assets
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|/images/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images/).*)",
   ],
 };

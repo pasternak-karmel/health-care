@@ -9,8 +9,8 @@ export default function SignInPage() {
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
-          <a href="#" className="flex items-center gap-2 font-medium">
-          <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+          <a href="/" className="flex items-center gap-2 font-medium">
+            <div className="relative w-8 h-8 rounded-full bg-primary flex items-center justify-center">
               <Activity className="h-5 w-5 text-primary-foreground" />
             </div>
             Health Care
