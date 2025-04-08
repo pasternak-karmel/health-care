@@ -46,7 +46,8 @@ async function fetchNotifications(): Promise<Notification[]> {
     throw new Error(errorData.error || "Failed to fetch notifications");
   }
 
-  return response.json();
+  const data = await response.json();
+  return data.data;
 }
 
 // Mark a notification as read
@@ -81,14 +82,13 @@ async function markAllNotificationsAsRead(): Promise<{ success: boolean }> {
   return response.json();
 }
 
-// Hook for notifications
 export function useNotifications() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 1000 * 60,
   });
 
   const markAsReadMutation = useMutation({

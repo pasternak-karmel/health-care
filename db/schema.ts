@@ -143,17 +143,17 @@ export const Notifications = pgTable("notifications", {
   }),
   title: text("title").notNull(),
   message: text("message").notNull(),
-  type: text("type").notNull(), // 'info', 'warning', 'critical', 'appointment', 'medication', 'lab_result', 'vital_sign'
-  category: text("category").notNull(), // 'patient_status', 'appointment', 'lab_result', 'medication', 'vital_sign', 'administrative'
-  priority: text("priority").notNull().default("normal"), // 'low', 'normal', 'high', 'urgent'
-  status: text("status").notNull().default("pending"), // 'pending', 'in_progress', 'completed', 'dismissed'
+  type: text("type").notNull(),
+  category: text("category").notNull(),
+  priority: text("priority").notNull().default("normal"),
+  status: text("status").notNull().default("pending"),
   read: boolean("read").default(false),
   actionRequired: boolean("action_required").default(false),
-  actionType: text("action_type"), // 'review', 'confirm', 'reschedule', 'contact_patient', etc.
-  actionUrl: text("action_url"), // URL to the relevant page for taking action
-  scheduledFor: timestamp("scheduled_for", { withTimezone: true }), // For scheduled notifications like appointment reminders
-  expiresAt: timestamp("expires_at", { withTimezone: true }), // When the notification should expire
-  metadata: json("metadata"), // Additional data related to the notification
+  actionType: text("action_type"),
+  actionUrl: text("action_url"),
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  metadata: json("metadata"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

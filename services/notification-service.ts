@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { user } from "@/db/auth-schema";
 import { Notifications, notificationPreferences, patient } from "@/db/schema";
 import { ApiError } from "@/lib/api-error";
+import { auth } from "@/lib/auth";
 import { deleteCache, deleteCacheByPattern, withCache } from "@/lib/cache";
 import {
   and,
@@ -15,6 +16,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 
 export interface NotificationFilters {
@@ -58,7 +60,6 @@ export class NotificationService {
    */
   static async getNotifications(filters: NotificationFilters = {}) {
     const {
-      userId,
       patientId,
       type,
       category,
@@ -75,13 +76,13 @@ export class NotificationService {
       sortOrder = "desc",
     } = filters;
 
+    let userId = filters.userId;
+
     const offset = (page - 1) * limit;
 
-    // Build cache key
     const cacheKey = `notifications:${userId || ""}:${page}:${limit}:${JSON.stringify(filters)}`;
 
     return withCache(cacheKey, async () => {
-      // Build where clause
       const whereConditions = [];
 
       if (userId) {
@@ -174,68 +175,84 @@ export class NotificationService {
         }
       })();
 
-      let notifications;
+      // let notifications;
 
-      if (patientId) {
-        // Query with patient join
-        const query = db
-          .select({
-            id: Notifications.id,
-            userId: Notifications.userId,
-            patientId: Notifications.patientId,
-            title: Notifications.title,
-            message: Notifications.message,
-            type: Notifications.type,
-            category: Notifications.category,
-            priority: Notifications.priority,
-            status: Notifications.status,
-            read: Notifications.read,
-            actionRequired: Notifications.actionRequired,
-            actionType: Notifications.actionType,
-            actionUrl: Notifications.actionUrl,
-            scheduledFor: Notifications.scheduledFor,
-            expiresAt: Notifications.expiresAt,
-            metadata: Notifications.metadata,
-            createdAt: Notifications.createdAt,
-            updatedAt: Notifications.updatedAt,
-            patient: {
-              id: patient.id,
-              firstname: patient.firstname,
-              lastname: patient.lastname,
-            },
-          })
-          .from(Notifications)
-          .leftJoin(patient, eq(Notifications.patientId, patient.id));
+      // if (patientId) {
+      //   // Query with patient join
+      //   const query = db
+      //     .select({
+      //       id: Notifications.id,
+      //       userId: Notifications.userId,
+      //       patientId: Notifications.patientId,
+      //       title: Notifications.title,
+      //       message: Notifications.message,
+      //       type: Notifications.type,
+      //       category: Notifications.category,
+      //       priority: Notifications.priority,
+      //       status: Notifications.status,
+      //       read: Notifications.read,
+      //       actionRequired: Notifications.actionRequired,
+      //       actionType: Notifications.actionType,
+      //       actionUrl: Notifications.actionUrl,
+      //       scheduledFor: Notifications.scheduledFor,
+      //       expiresAt: Notifications.expiresAt,
+      //       metadata: Notifications.metadata,
+      //       createdAt: Notifications.createdAt,
+      //       updatedAt: Notifications.updatedAt,
+      //       patient: {
+      //         id: patient.id,
+      //         firstname: patient.firstname,
+      //         lastname: patient.lastname,
+      //       },
+      //     })
+      //     .from(Notifications)
+      //     .leftJoin(patient, eq(Notifications.patientId, patient.id));
 
-        if (whereClause) {
-          notifications = await query
-            .where(whereClause)
-            .orderBy(orderByClause)
-            .limit(limit)
-            .offset(offset);
-        } else {
-          notifications = await query
-            .orderBy(orderByClause)
-            .limit(limit)
-            .offset(offset);
-        }
-      } else {
-        // Query without patient join
-        const query = db.select().from(Notifications);
+      //   if (whereClause) {
+      //     notifications = await query
+      //       .where(whereClause)
+      //       .orderBy(orderByClause)
+      //       .limit(limit)
+      //       .offset(offset);
+      //   } else {
+      //     notifications = await query
+      //       .orderBy(orderByClause)
+      //       .limit(limit)
+      //       .offset(offset);
+      //   }
+      // } else {
+      //   // Query without patient join
+      //   const query = db.select().from(Notifications);
 
-        if (whereClause) {
-          notifications = await query
-            .where(whereClause)
-            .orderBy(orderByClause)
-            .limit(limit)
-            .offset(offset);
-        } else {
-          notifications = await query
-            .orderBy(orderByClause)
-            .limit(limit)
-            .offset(offset);
-        }
+      //   if (whereClause) {
+      //     notifications = await query
+      //       .where(whereClause)
+      //       .orderBy(orderByClause)
+      //       .limit(limit)
+      //       .offset(offset);
+      //   } else {
+      //     notifications = await query
+      //       .orderBy(orderByClause)
+      //       .limit(limit)
+      //       .offset(offset);
+      //   }
+      // }
+
+      if (!userId) {
+        const session = await auth.api.getSession({
+          headers: await headers(),
+        });
+        userId = session?.user?.id;
       }
+
+      if (!userId) {
+        throw ApiError.badRequest("User not found");
+      }
+      const notifications = await db.select().from(Notifications);
+      // .where(eq(Notifications.userId, userId));
+      // .orderBy(orderByClause)
+      // .limit(limit)
+      // .offset(offset);
 
       const countQuery = db
         .select({ count: sql<number>`count(*)` })

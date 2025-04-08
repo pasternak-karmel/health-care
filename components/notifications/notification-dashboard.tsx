@@ -12,31 +12,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNotifications } from "@/hooks/use-notifications";
-import { format, formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AlertTriangle, Bell, Check, Clock, Eye, Info } from "lucide-react";
 import Link from "next/link";
+import { formatDateCustom } from "../patients/date-formater";
 
 export function NotificationDashboard() {
-  const {
-    data: notifications = [],
-    isLoading,
-    error,
-    markAsRead,
-    markAllAsRead,
-  } = useNotifications();
+  const { data, isLoading, error, markAsRead, markAllAsRead } =
+    useNotifications();
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.abs(now.getTime() - date.getTime()) / 36e5;
-
-    if (diffInHours < 24) {
-      return formatDistanceToNow(date, { addSuffix: true, locale: fr });
-    }
-
-    return format(date, "dd/MM/yyyy à HH:mm", { locale: fr });
-  };
+  const notifications = Array.isArray(data) ? data : [];
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getNotificationIcon = (type: string, priority: string) => {
@@ -233,7 +217,7 @@ export function NotificationDashboard() {
                 </CardContent>
                 <CardFooter className="p-4 pt-0 flex justify-between">
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(notification.createdAt)}
+                    {formatDateCustom(notification.createdAt)}
                   </p>
                   <div className="flex gap-2">
                     {notification.patientId && (
@@ -298,7 +282,7 @@ export function NotificationDashboard() {
                 </CardContent>
                 <CardFooter className="p-4 pt-0 flex justify-between">
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(notification.createdAt)}
+                    {formatDateCustom(notification.createdAt)}
                   </p>
                   <div className="flex gap-2">
                     {notification.patientId && (
@@ -364,7 +348,7 @@ export function NotificationDashboard() {
                 </CardContent>
                 <CardFooter className="p-4 pt-0 flex justify-between">
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(notification.createdAt)}
+                    {formatDateCustom(notification.createdAt)}
                   </p>
                   <div className="flex gap-2">
                     {notification.patientId && (
