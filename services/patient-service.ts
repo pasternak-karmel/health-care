@@ -19,7 +19,6 @@ import type {
 } from "@/schemas/patient";
 import { and, asc, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
-import { title } from "process";
 import { v4 as uuidv4 } from "uuid";
 
 export class PatientService {
