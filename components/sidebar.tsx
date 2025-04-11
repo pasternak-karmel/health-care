@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import {
   Activity,
@@ -105,20 +106,20 @@ export default function Sidebar({ mobile = false }: SidebarProps) {
               : "text-muted-foreground"
           )}
         >
-          <div className="flex items-center flex-1">
+          {/* <div className="flex items-center flex-1">
             <Settings className="h-5 w-5 mr-3 text-gray-500" />
             Paramètres
-          </div>
+          </div> */}
         </Link>
-        <Button
+        <Button onClick={() => signOut()}
           variant="ghost"
-          className="w-full justify-start text-sm p-3 font-medium mt-1"
+          className="w-full justify-start text-sm p-3 font-medium mt-1 cursor-pointer"
           asChild
         >
-          <Link href="/auth/logout">
+          <p>
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
             Déconnexion
-          </Link>
+          </p>
         </Button>
       </div>
     </div>
