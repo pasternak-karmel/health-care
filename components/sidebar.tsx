@@ -10,12 +10,10 @@ import {
   ClipboardList,
   LayoutDashboard,
   LogOut,
-  Settings,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
 
 const routes = [
   {
@@ -48,27 +46,29 @@ const routes = [
     href: "/rendez-vous",
     color: "text-emerald-500",
   },
-    // {
-    //   label: "Analytique",
-    //   icon: Activity,
-    //   href: "/analytique",
-    //   color: "text-blue-500",
-    // },
+  // {
+  //   label: "Analytique",
+  //   icon: Activity,
+  //   href: "/analytique",
+  //   color: "text-blue-500",
+  // },
 ];
 
 interface SidebarProps {
-  mobile?: boolean; 
+  mobile?: boolean;
 }
 
 export default function Sidebar({ mobile = false }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <div className={cn(
-      "space-y-4 py-4 flex-col h-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 border-r",
-      "transition-transform duration-300 ease-in-out",
-      mobile ? "flex" : "hidden md:flex"
-    )}>
+    <div
+      className={cn(
+        "space-y-4 py-4 flex-col h-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 border-r",
+        "transition-transform duration-300 ease-in-out",
+        mobile ? "flex" : "hidden md:flex"
+      )}
+    >
       <div className="px-3 py-2 flex-1">
         <Link href="/" className="flex items-center pl-3 mb-10">
           <div className="relative w-8 h-8 mr-4 rounded-full bg-primary flex items-center justify-center">
@@ -97,7 +97,7 @@ export default function Sidebar({ mobile = false }: SidebarProps) {
         </div>
       </div>
       <div className="px-3 py-2 border-t">
-        <Link
+        {/* <Link
           href="/parametres"
           className={cn(
             "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-primary hover:bg-primary/10 rounded-lg transition",
@@ -109,17 +109,17 @@ export default function Sidebar({ mobile = false }: SidebarProps) {
           {/* <div className="flex items-center flex-1">
             <Settings className="h-5 w-5 mr-3 text-gray-500" />
             Paramètres
-          </div> */}
-        </Link>
-        <Button onClick={() => signOut()}
+          </div>
+        </Link> */}
+        <Button
           variant="ghost"
           className="w-full justify-start text-sm p-3 font-medium mt-1 cursor-pointer"
           asChild
         >
-          <p>
+          <div className="cursor-pointer" onClick={() => signOut()}>
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
             Déconnexion
-          </p>
+          </div>
         </Button>
       </div>
     </div>

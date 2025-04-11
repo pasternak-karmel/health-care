@@ -1,9 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useState, useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { Card, CardHeader, CardContent, CardFooter } from "../ui/card";
-import { Skeleton } from "../ui/skeleton";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "@radix-ui/react-icons";
+import { Tabs, TabsList } from "@radix-ui/react-tabs";
+import { format } from "date-fns";
+import { useEffect, useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Select,
   SelectContent,
@@ -11,13 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Button } from "../ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import Calendar from "react-calendar"; // <-- Importing react-calendar
-import "react-calendar/dist/Calendar.css"; // <-- Importing Calendar styles
+import { Skeleton } from "../ui/skeleton";
 
 const statusOptions = [
   { value: "scheduled", label: "Planifié" },
@@ -152,7 +153,6 @@ export function AppointmentDashboard() {
         </div>
       </div>
 
-      {/* Filters Section at the Top */}
       <div className="space-y-4">
         <h3 className="font-medium">Filtres</h3>
 
@@ -222,7 +222,7 @@ export function AppointmentDashboard() {
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   onChange={(date: Date | null) =>
-                    handleFilterChange("startDate", date)
+                    handleFilterChange("startDate", date ? date : null)
                   }
                   value={filters.startDate}
                 />
@@ -261,7 +261,6 @@ export function AppointmentDashboard() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="mt-4">
         {appointments.length === 0 ? (
           <div className="text-center py-8">
