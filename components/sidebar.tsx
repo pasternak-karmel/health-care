@@ -47,12 +47,12 @@ const routes = [
     href: "/rendez-vous",
     color: "text-emerald-500",
   },
-  {
-    label: "Analytique",
-    icon: Activity,
-    href: "/analytique",
-    color: "text-blue-500",
-  },
+    // {
+    //   label: "Analytique",
+    //   icon: Activity,
+    //   href: "/analytique",
+    //   color: "text-blue-500",
+    // },
 ];
 
 interface SidebarProps {
