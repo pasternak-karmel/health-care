@@ -118,11 +118,17 @@ export default function LandingPage() {
                 <span>Conseils nutritionnels spécialisés</span>
               </li>
             </ul>
-            <Button asChild className="mt-4">
-              <Link href="/contact">
-                Prendre rendez-vous avec un néphrologue
-              </Link>
+            <Button
+              className="mt-4"
+              onClick={() =>
+              (window.location.href =
+                "mailto:contact@healthcare.com?subject=Demande%20de%20rendez-vous%20avec%20un%20néphrologue&body=Bonjour,%20je%20souhaite%20prendre%20rendez-vous%20avec%20un%20néphrologue.%20Pourriez-vous%20me%20recontacter%20s'il%20vous%20plaît%20?")
+              }
+            >
+              Prendre rendez-vous avec un néphrologue
             </Button>
+
+
           </div>
         </div>
       </section>
