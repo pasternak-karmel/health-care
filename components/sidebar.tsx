@@ -10,7 +10,6 @@ import {
   ClipboardList,
   LayoutDashboard,
   LogOut,
-  Settings,
   Users,
 } from "lucide-react";
 import Link from "next/link";

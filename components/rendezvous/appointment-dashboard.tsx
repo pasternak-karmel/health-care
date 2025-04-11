@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { Tabs, TabsList } from "@radix-ui/react-tabs";
 import { Card, CardHeader, CardContent, CardFooter } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 import { Input } from "../ui/input";
@@ -33,8 +33,24 @@ const typeOptions = [
   { value: "phone", label: "Téléphonique" },
 ];
 
+interface Appointment {
+  id: string; // Assuming the appointment has an 'id' field, could be a number or string
+  patient: {
+    firstname: string;
+    lastname: string;
+    email: string;
+  };
+  date: string;
+  title: string;
+  description: string;
+  status: "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show";
+  type: "in_person" | "virtual" | "phone";
+}
+
+type FilterValues = string | Date | null;
+
 export function AppointmentDashboard() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     status: "",
@@ -77,7 +93,7 @@ export function AppointmentDashboard() {
     fetchAppointments();
   }, [filters, activeTab]);
 
-  const handleFilterChange = (name: string, value: any) => {
+  const handleFilterChange = <T extends FilterValues>(name: string, value: T) => {
     setFilters((prev) => ({
       ...prev,
       [name]: value,
