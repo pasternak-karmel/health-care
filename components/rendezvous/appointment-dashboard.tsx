@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "@radix-ui/react-icons";
@@ -34,8 +33,24 @@ const typeOptions = [
   { value: "phone", label: "Téléphonique" },
 ];
 
+interface Appointment {
+  id: string; // Assuming the appointment has an 'id' field, could be a number or string
+  patient: {
+    firstname: string;
+    lastname: string;
+    email: string;
+  };
+  date: string;
+  title: string;
+  description: string;
+  status: "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show";
+  type: "in_person" | "virtual" | "phone";
+}
+
+type FilterValues = string | Date | null;
+
 export function AppointmentDashboard() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     status: "",
@@ -78,7 +93,10 @@ export function AppointmentDashboard() {
     fetchAppointments();
   }, [filters, activeTab]);
 
-  const handleFilterChange = (name: string, value: any) => {
+  const handleFilterChange = <T extends FilterValues>(
+    name: string,
+    value: T
+  ) => {
     setFilters((prev) => ({
       ...prev,
       [name]: value,
@@ -221,9 +239,9 @@ export function AppointmentDashboard() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
-                  onChange={(date: Date | null) =>
-                    handleFilterChange("startDate", date ? date : null)
-                  }
+                  // onChange={(date: Date | null) =>
+                  //   handleFilterChange("startDate", date ? date : null)
+                  // }
                   value={filters.startDate}
                 />
               </PopoverContent>
@@ -250,9 +268,9 @@ export function AppointmentDashboard() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
-                  onChange={(date: Date | null) =>
-                    handleFilterChange("endDate", date)
-                  }
+                  // onChange={(date: Date | null) =>
+                  //   handleFilterChange("endDate", date)
+                  // }
                   value={filters.endDate}
                 />
               </PopoverContent>
