@@ -313,12 +313,7 @@ export function PatientList({
         </CardFooter>
       )}
 
-      {patientToDelete && (
-        <DeletePatientDialog
-          patientId={patientToDelete}
-          onClose={() => setPatientToDelete(null)}
-        />
-      )}
+      {patientToDelete && <DeletePatientDialog patientId={patientToDelete} />}
     </Card>
   );
 }
